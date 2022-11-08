@@ -2,49 +2,47 @@ package api
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
 
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/library"
-	"github.com/elgatito/elementum/scrape"
-	"github.com/elgatito/elementum/tmdb"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/library"
+	"github.com/Sanchous98/elementum/scrape"
+	"github.com/Sanchous98/elementum/tmdb"
 
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/dustin/go-humanize"
-	"github.com/gin-gonic/gin"
-
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
 )
 
 // Changelog display
-func Changelog(ctx *gin.Context) {
+func Changelog(ctx *fiber.Ctx) error {
 	changelogPath := filepath.Join(config.Get().Info.Path, "whatsnew.txt")
 	if _, err := os.Stat(changelogPath); err != nil {
-		ctx.String(404, err.Error())
-		return
+		ctx.Status(fiber.StatusNotFound)
+		return err
 	}
 
 	title := "LOCALIZE[30355]"
 	text, err := ioutil.ReadFile(changelogPath)
 	if err != nil {
-		ctx.String(404, err.Error())
-		return
+		ctx.Status(fiber.StatusNotFound)
+		return err
 	}
 
 	xbmc.DialogText(title, string(text))
-	ctx.String(200, "")
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 // Status display
-func Status(ctx *gin.Context) {
+func Status(ctx *fiber.Ctx) error {
 	title := "LOCALIZE[30393]"
-	text := ""
-
-	text += `[B]LOCALIZE[30394]:[/B] %s
+	text := `[B]LOCALIZE[30394]:[/B] %s
 
 [B]LOCALIZE[30395]:[/B] %s
 [B]LOCALIZE[30396]:[/B] %d
@@ -110,8 +108,9 @@ func Status(ctx *gin.Context) {
 		deletedShowsCount,
 	)
 
-	xbmc.DialogText(title, string(text))
-	ctx.String(200, "")
+	xbmc.DialogText(title, text)
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 func fileSize(path string) string {
@@ -124,11 +123,11 @@ func fileSize(path string) string {
 }
 
 // SelectNetworkInterface ...
-func SelectNetworkInterface(ctx *gin.Context) {
+func SelectNetworkInterface(ctx *fiber.Ctx) error {
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		ctx.String(404, err.Error())
-		return
+		ctx.Status(fiber.StatusNotFound)
+		return err
 	}
 
 	items := make([]string, 0, len(ifaces))
@@ -170,11 +169,12 @@ func SelectNetworkInterface(ctx *gin.Context) {
 		xbmc.SetSetting("listen_interfaces", ifaces[choice].Name)
 	}
 
-	ctx.String(200, "")
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 // SelectStrmLanguage ...
-func SelectStrmLanguage(ctx *gin.Context) {
+func SelectStrmLanguage(ctx *fiber.Ctx) error {
 	items := make([]string, 0)
 	items = append(items, xbmc.GetLocalizedString(30477))
 
@@ -190,5 +190,6 @@ func SelectStrmLanguage(ctx *gin.Context) {
 		xbmc.SetSetting("strm_language", "Original")
 	}
 
-	ctx.String(200, "")
+	ctx.Status(fiber.StatusOK)
+	return nil
 }

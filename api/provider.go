@@ -3,24 +3,24 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"strconv"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/providers"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/xbmc"
-	"github.com/gin-gonic/gin"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/providers"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 type providerDebugResponse struct {
-	Payload interface{} `json:"payload"`
-	Results interface{} `json:"results"`
+	Payload any `json:"payload"`
+	Results any `json:"results"`
 }
 
 // ProviderGetMovie ...
-func ProviderGetMovie(ctx *gin.Context) {
-	tmdbID := ctx.Params.ByName("tmdbId")
-	provider := ctx.Params.ByName("provider")
+func ProviderGetMovie(ctx *fiber.Ctx) error {
+	tmdbID := ctx.Params("tmdbId")
+	provider := ctx.Params("provider")
 	log.Infof("Searching links for:", tmdbID)
 	movie := tmdb.GetMovieByID(tmdbID, config.Get().Language)
 	log.Infof("Resolved %s to %s", tmdbID, movie.Title)
@@ -38,25 +38,27 @@ func ProviderGetMovie(ctx *gin.Context) {
 	}, "", "    ")
 	if err != nil {
 		xbmc.AddonFailure(provider)
-		ctx.Error(err)
+		return err
 	}
-	ctx.Data(200, "application/json", data)
+
+	ctx.Status(fiber.StatusOK)
+	ctx.Response().Header.SetContentType(fiber.MIMEApplicationJSON)
+	return ctx.Send(data)
 }
 
 // ProviderGetEpisode ...
-func ProviderGetEpisode(ctx *gin.Context) {
-	provider := ctx.Params.ByName("provider")
-	showID, _ := strconv.Atoi(ctx.Params.ByName("showId"))
-	seasonNumber, _ := strconv.Atoi(ctx.Params.ByName("season"))
-	episodeNumber, _ := strconv.Atoi(ctx.Params.ByName("episode"))
+func ProviderGetEpisode(ctx *fiber.Ctx) error {
+	provider := ctx.Params("provider")
+	showID, _ := strconv.Atoi(ctx.Params("showId"))
+	seasonNumber, _ := strconv.Atoi(ctx.Params("season"))
+	episodeNumber, _ := strconv.Atoi(ctx.Params("episode"))
 
 	log.Infof("Searching links for TMDB Id:", showID)
 
 	show := tmdb.GetShow(showID, config.Get().Language)
 	season := tmdb.GetSeason(showID, seasonNumber, config.Get().Language)
 	if season == nil {
-		ctx.Error(fmt.Errorf("Unable to get season %d", seasonNumber))
-		return
+		return fmt.Errorf("Unable to get season %d", seasonNumber)
 	}
 	episode := season.Episodes[episodeNumber-1]
 
@@ -75,7 +77,10 @@ func ProviderGetEpisode(ctx *gin.Context) {
 	}, "", "    ")
 	if err != nil {
 		xbmc.AddonFailure(provider)
-		ctx.Error(err)
+		return err
 	}
-	ctx.Data(200, "application/json", data)
+
+	ctx.Status(fiber.StatusOK)
+	ctx.Response().Header.SetContentType(fiber.MIMEApplicationJSON)
+	return ctx.Send(data)
 }

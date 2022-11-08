@@ -7,13 +7,12 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
 
-	"github.com/dustin/go-humanize"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/bittorrent/reader"
-	"github.com/elgatito/elementum/config"
-	estorage "github.com/elgatito/elementum/storage"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent/reader"
+	"github.com/Sanchous98/elementum/config"
+	estorage "github.com/Sanchous98/elementum/storage"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 const (
@@ -34,16 +33,6 @@ type Storage struct {
 }
 
 // NewMemoryStorage initializer function
-func NewMemoryStorage(maxMemorySize int64) *Storage {
-	log.Infof("Initializing memory storage of size: %s", humanize.Bytes(uint64(maxMemorySize)))
-	s := &Storage{
-		mu:       &sync.Mutex{},
-		capacity: maxMemorySize,
-		items:    map[string]*Cache{},
-	}
-
-	return s
-}
 
 // GetTorrentStorage ...
 func (s *Storage) GetTorrentStorage(hash string) estorage.TorrentStorage {
@@ -65,17 +54,17 @@ func (s *Storage) GetReadaheadSize() int64 {
 }
 
 // SetReadaheadSize ...
-func (s *Storage) SetReadaheadSize(size int64) {}
+func (s *Storage) SetReadaheadSize(int64) {}
 
 // SetReaders ...
-func (s *Storage) SetReaders(readers []*reader.PositionReader) {
+func (s *Storage) SetReaders([]*reader.PositionReader) {
 }
 
 // OpenTorrent ...
 func (s *Storage) OpenTorrent(info *metainfo.Info, infoHash metainfo.Hash) (storage.TorrentImpl, error) {
 	if !s.haveAvailableMemory() {
 		xbmc.Notify("Elementum", "LOCALIZE[30356]", config.AddonIcon())
-		return nil, errors.New("Not enough free memory")
+		return storage.TorrentImpl{}, errors.New("Not enough free memory")
 	}
 
 	c := &Cache{

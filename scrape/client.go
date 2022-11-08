@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/config"
+	"github.com/Sanchous98/elementum/config"
 )
 
 var (

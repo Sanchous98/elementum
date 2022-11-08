@@ -5,25 +5,23 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/scrape"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/scrape"
 )
 
 //go:generate msgp -o msgp.go -io=false -tests=false
 
 const (
-	tvdbURL                 = "http://thetvdb.com"
-	tvdbEndpoint            = tvdbURL + "/api"
-	apiKey                  = "1D62F2F90030C444"
-	burstRate               = 30
-	burstTime               = 1 * time.Second
-	simultaneousConnections = 20
-	cacheExpiration         = 2 * time.Hour
+	tvdbURL      = "http://thetvdb.com"
+	tvdbEndpoint = tvdbURL + "/api"
+	apiKey       = "1D62F2F90030C444"
+
+	cacheExpiration = 2 * time.Hour
 )
 
 // SeasonList ...
@@ -138,7 +136,7 @@ func getShow(tvdbID int, language string) (*Show, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

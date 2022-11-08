@@ -1,9 +1,9 @@
 package storage
 
 import (
+	"github.com/Sanchous98/elementum/bittorrent/reader"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
-	"github.com/elgatito/elementum/bittorrent/reader"
 
 	fat32storage "github.com/iamacarpet/go-torrent-storage-fat32"
 )
@@ -20,7 +20,7 @@ const (
 )
 
 // Storages lists basic names of used storage engines
-var Storages = map[int]string{
+var Storages = [...]string{
 	StorageFile:   "File",
 	StorageMMap:   "MMap",
 	StorageFat32:  "Fat32",
@@ -31,10 +31,6 @@ var Storages = map[int]string{
 type ElementumStorage interface {
 	storage.ClientImpl
 
-	// Start()
-	// Stop()
-	// SyncPieces(map[int]bool)
-	// RemovePiece(int)
 	GetTorrentStorage(string) TorrentStorage
 	GetReadaheadSize() int64
 	SetReadaheadSize(int64)
@@ -85,7 +81,7 @@ func (me *DummyStorage) Stop() {}
 // func (me *DummyStorage) RemovePiece(idx int)                          {}
 
 // GetTorrentStorage ...
-func (me *DummyStorage) GetTorrentStorage(hash string) TorrentStorage { return me }
+func (me *DummyStorage) GetTorrentStorage(string) TorrentStorage { return me }
 
 // GetReadaheadSize ...
 func (me *DummyStorage) GetReadaheadSize() int64 {
@@ -98,5 +94,5 @@ func (me *DummyStorage) SetReadaheadSize(size int64) {
 }
 
 // SetReaders ...
-func (me *DummyStorage) SetReaders(readers []*reader.PositionReader) {
+func (me *DummyStorage) SetReaders([]*reader.PositionReader) {
 }

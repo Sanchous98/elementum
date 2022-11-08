@@ -1,199 +1,198 @@
 package api
 
 import (
-	"net/http"
-	"path/filepath"
+	"github.com/Sanchous98/elementum/api/repository"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/providers"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"os"
 
-	"github.com/elgatito/elementum/api/repository"
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/providers"
-
-	"github.com/gin-gonic/gin"
 	"github.com/op/go-logging"
 )
 
 var log = logging.MustGetLogger("api")
 
 // Routes ...
-func Routes(btService *bittorrent.BTService) *gin.Engine {
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/torrents/list", "/notification"))
+func Routes(app *fiber.App, btService *bittorrent.BTService) {
+	app.Use(recover.New())
+	app.Use(logger.New(logger.Config{
+		Output: os.Stdout,
+	}))
+	//r.Use(gin.LoggerWithWriter(gin.DefaultWriter, "/torrents/list", "/notification"))
 
-	gin.SetMode(gin.ReleaseMode)
+	app.Get("/", Index)
+	app.Get("/playtorrent", PlayTorrent)
+	app.Get("/infolabels", InfoLabelsStored)
+	app.Get("/changelog", Changelog)
+	app.Get("/status", Status)
 
-	r.GET("/", Index)
-	r.GET("/playtorrent", PlayTorrent)
-	r.GET("/infolabels", InfoLabelsStored(btService))
-	r.GET("/changelog", Changelog)
-	r.GET("/status", Status)
-
-	search := r.Group("/search")
+	search := app.Group("/search")
 	{
-		search.GET("", Search(btService))
-		search.GET("/remove", SearchRemove)
-		search.GET("/clear", SearchClear)
-		search.GET("/infolabels/:tmdbId", InfoLabelsSearch(btService))
+		search.Get("", Search(btService))
+		search.Get("/remove", SearchRemove)
+		search.Get("/clear", SearchClear)
+		search.Get("/infolabels/:tmdbId", InfoLabelsSearch(btService))
 	}
 
-	r.LoadHTMLGlob(filepath.Join(config.Get().Info.Path, "resources", "web", "*.html"))
-	web := r.Group("/web")
-	{
-		web.GET("/", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index.html", nil)
-		})
-		web.Static("/static", filepath.Join(config.Get().Info.Path, "resources", "web", "static"))
-		web.StaticFile("/favicon.ico", filepath.Join(config.Get().Info.Path, "resources", "web", "favicon.ico"))
-	}
+	//r.LoadHTMLGlob(filepath.Join(config.Get().Info.Path, "resources", "web", "*.html"))
+	//web := app.Group("/web")
+	//{
+	//	web.Get("/", func(c *fiber.Ctx) error {
+	//		c.HTML(http.StatusOK, "index.html", nil)
+	//	})
+	//	web.Static("/static", filepath.Join(config.Get().Info.Path, "resources", "web", "static"))
+	//	web.Static("/favicon.ico", filepath.Join(config.Get().Info.Path, "resources", "web", "favicon.ico"))
+	//}
 
-	torrents := r.Group("/torrents")
+	torrents := app.Group("/torrents")
 	{
-		torrents.GET("/", ListTorrents(btService))
-		torrents.Any("/add", AddTorrent(btService))
-		torrents.GET("/pause", PauseSession(btService))
-		torrents.GET("/resume", ResumeSession(btService))
-		torrents.GET("/move/:torrentId", MoveTorrent(btService))
-		torrents.GET("/pause/:torrentId", PauseTorrent(btService))
-		torrents.GET("/resume/:torrentId", ResumeTorrent(btService))
-		torrents.GET("/delete/:torrentId", RemoveTorrent(btService))
+		torrents.Get("/", ListTorrents(btService))
+		torrents.All("/add", AddTorrent(btService))
+		torrents.Get("/pause", PauseSession)
+		torrents.Get("/resume", ResumeSession)
+		torrents.Get("/move/:torrentId", MoveTorrent(btService))
+		torrents.Get("/pause/:torrentId", PauseTorrent(btService))
+		torrents.Get("/resume/:torrentId", ResumeTorrent(btService))
+		torrents.Get("/delete/:torrentId", RemoveTorrent(btService))
 
 		// Web UI json
-		torrents.GET("/list", ListTorrentsWeb(btService))
+		torrents.Get("/list", ListTorrentsWeb(btService))
 	}
 
-	movies := r.Group("/movies")
+	movies := app.Group("/movies")
 	{
-		movies.GET("/", MoviesIndex)
-		movies.GET("/search", SearchMovies)
-		movies.GET("/popular", PopularMovies)
-		movies.GET("/popular/genre/:genre", PopularMovies)
-		movies.GET("/popular/language/:language", PopularMovies)
-		movies.GET("/popular/country/:country", PopularMovies)
-		movies.GET("/recent", RecentMovies)
-		movies.GET("/recent/genre/:genre", RecentMovies)
-		movies.GET("/recent/language/:language", RecentMovies)
-		movies.GET("/recent/country/:country", RecentMovies)
-		movies.GET("/top", TopRatedMovies)
-		movies.GET("/imdb250", IMDBTop250)
-		movies.GET("/mostvoted", MoviesMostVoted)
-		movies.GET("/genres", MovieGenres)
-		movies.GET("/languages", MovieLanguages)
-		movies.GET("/countries", MovieCountries)
+		movies.Get("/", MoviesIndex)
+		movies.Get("/search", SearchMovies)
+		movies.Get("/popular", PopularMovies)
+		movies.Get("/popular/genre/:genre", PopularMovies)
+		movies.Get("/popular/language/:language", PopularMovies)
+		movies.Get("/popular/country/:country", PopularMovies)
+		movies.Get("/recent", RecentMovies)
+		movies.Get("/recent/genre/:genre", RecentMovies)
+		movies.Get("/recent/language/:language", RecentMovies)
+		movies.Get("/recent/country/:country", RecentMovies)
+		movies.Get("/top", TopRatedMovies)
+		movies.Get("/imdb250", IMDBTop250)
+		movies.Get("/mostvoted", MoviesMostVoted)
+		movies.Get("/genres", MovieGenres)
+		movies.Get("/languages", MovieLanguages)
+		movies.Get("/countries", MovieCountries)
 
 		trakt := movies.Group("/trakt")
 		{
-			trakt.GET("/watchlist", WatchlistMovies)
-			trakt.GET("/collection", CollectionMovies)
-			trakt.GET("/popular", TraktPopularMovies)
-			trakt.GET("/recommendations", TraktRecommendationsMovies)
-			trakt.GET("/trending", TraktTrendingMovies)
-			trakt.GET("/toplists", TopTraktLists)
-			trakt.GET("/played", TraktMostPlayedMovies)
-			trakt.GET("/watched", TraktMostWatchedMovies)
-			trakt.GET("/collected", TraktMostCollectedMovies)
-			trakt.GET("/anticipated", TraktMostAnticipatedMovies)
-			trakt.GET("/boxoffice", TraktBoxOffice)
-			trakt.GET("/history", TraktHistoryMovies)
+			trakt.Get("/watchlist", WatchlistMovies)
+			trakt.Get("/collection", CollectionMovies)
+			trakt.Get("/popular", TraktPopularMovies)
+			trakt.Get("/recommendations", TraktRecommendationsMovies)
+			trakt.Get("/trending", TraktTrendingMovies)
+			trakt.Get("/toplists", TopTraktLists)
+			trakt.Get("/played", TraktMostPlayedMovies)
+			trakt.Get("/watched", TraktMostWatchedMovies)
+			trakt.Get("/collected", TraktMostCollectedMovies)
+			trakt.Get("/anticipated", TraktMostAnticipatedMovies)
+			trakt.Get("/boxoffice", TraktBoxOffice)
+			trakt.Get("/history", TraktHistoryMovies)
 
 			lists := trakt.Group("/lists")
 			{
-				lists.GET("/", MoviesTraktLists)
-				lists.GET("/:user/:listId", UserlistMovies)
+				lists.Get("/", MoviesTraktLists)
+				lists.Get("/:user/:listId", UserlistMovies)
 			}
 
 			calendars := trakt.Group("/calendars")
 			{
-				calendars.GET("/", CalendarMovies)
-				calendars.GET("/movies", TraktMyMovies)
-				calendars.GET("/releases", TraktMyReleases)
-				calendars.GET("/allmovies", TraktAllMovies)
-				calendars.GET("/allreleases", TraktAllReleases)
+				calendars.Get("/", CalendarMovies)
+				calendars.Get("/movies", TraktMyMovies)
+				calendars.Get("/releases", TraktMyReleases)
+				calendars.Get("/allmovies", TraktAllMovies)
+				calendars.Get("/allreleases", TraktAllReleases)
 			}
 		}
 	}
-	movie := r.Group("/movie")
+	movie := app.Group("/movie")
 	{
-		movie.GET("/:tmdbId/infolabels", InfoLabelsMovie(btService))
-		movie.GET("/:tmdbId/links", MoviePlaySelector("links", btService))
-		movie.GET("/:tmdbId/forcelinks", MoviePlaySelector("forcelinks", btService))
-		movie.GET("/:tmdbId/play", MoviePlaySelector("play", btService))
-		movie.GET("/:tmdbId/forceplay", MoviePlaySelector("forceplay", btService))
-		movie.GET("/:tmdbId/watchlist/add", AddMovieToWatchlist)
-		movie.GET("/:tmdbId/watchlist/remove", RemoveMovieFromWatchlist)
-		movie.GET("/:tmdbId/collection/add", AddMovieToCollection)
-		movie.GET("/:tmdbId/collection/remove", RemoveMovieFromCollection)
+		movie.Get("/:tmdbId/infolabels", InfoLabelsMovie)
+		movie.Get("/:tmdbId/links", MoviePlaySelector("links", btService))
+		movie.Get("/:tmdbId/forcelinks", MoviePlaySelector("forcelinks", btService))
+		movie.Get("/:tmdbId/play", MoviePlaySelector("play", btService))
+		movie.Get("/:tmdbId/forceplay", MoviePlaySelector("forceplay", btService))
+		movie.Get("/:tmdbId/watchlist/add", AddMovieToWatchlist)
+		movie.Get("/:tmdbId/watchlist/remove", RemoveMovieFromWatchlist)
+		movie.Get("/:tmdbId/collection/add", AddMovieToCollection)
+		movie.Get("/:tmdbId/collection/remove", RemoveMovieFromCollection)
 	}
 
-	shows := r.Group("/shows")
+	shows := app.Group("/shows")
 	{
-		shows.GET("/", TVIndex)
-		shows.GET("/search", SearchShows)
-		shows.GET("/popular", PopularShows)
-		shows.GET("/popular/genre/:genre", PopularShows)
-		shows.GET("/popular/language/:language", PopularShows)
-		shows.GET("/popular/country/:country", PopularShows)
-		shows.GET("/recent/shows", RecentShows)
-		shows.GET("/recent/shows/genre/:genre", RecentShows)
-		shows.GET("/recent/shows/language/:language", RecentShows)
-		shows.GET("/recent/shows/country/:country", RecentShows)
-		shows.GET("/recent/episodes", RecentEpisodes)
-		shows.GET("/recent/episodes/genre/:genre", RecentEpisodes)
-		shows.GET("/recent/episodes/language/:language", RecentEpisodes)
-		shows.GET("/recent/episodes/country/:country", RecentEpisodes)
-		shows.GET("/top", TopRatedShows)
-		shows.GET("/mostvoted", TVMostVoted)
-		shows.GET("/genres", TVGenres)
-		shows.GET("/languages", TVLanguages)
-		shows.GET("/countries", TVCountries)
+		shows.Get("/", TVIndex)
+		shows.Get("/search", SearchShows)
+		shows.Get("/popular", PopularShows)
+		shows.Get("/popular/genre/:genre", PopularShows)
+		shows.Get("/popular/language/:language", PopularShows)
+		shows.Get("/popular/country/:country", PopularShows)
+		shows.Get("/recent/shows", RecentShows)
+		shows.Get("/recent/shows/genre/:genre", RecentShows)
+		shows.Get("/recent/shows/language/:language", RecentShows)
+		shows.Get("/recent/shows/country/:country", RecentShows)
+		shows.Get("/recent/episodes", RecentEpisodes)
+		shows.Get("/recent/episodes/genre/:genre", RecentEpisodes)
+		shows.Get("/recent/episodes/language/:language", RecentEpisodes)
+		shows.Get("/recent/episodes/country/:country", RecentEpisodes)
+		shows.Get("/top", TopRatedShows)
+		shows.Get("/mostvoted", TVMostVoted)
+		shows.Get("/genres", TVGenres)
+		shows.Get("/languages", TVLanguages)
+		shows.Get("/countries", TVCountries)
 
 		trakt := shows.Group("/trakt")
 		{
-			trakt.GET("/watchlist", WatchlistShows)
-			trakt.GET("/collection", CollectionShows)
-			trakt.GET("/popular", TraktPopularShows)
-			trakt.GET("/recommendations", TraktRecommendationsShows)
-			trakt.GET("/trending", TraktTrendingShows)
-			trakt.GET("/played", TraktMostPlayedShows)
-			trakt.GET("/watched", TraktMostWatchedShows)
-			trakt.GET("/collected", TraktMostCollectedShows)
-			trakt.GET("/anticipated", TraktMostAnticipatedShows)
-			trakt.GET("/progress", TraktProgressShows)
-			trakt.GET("/history", TraktHistoryShows)
+			trakt.Get("/watchlist", WatchlistShows)
+			trakt.Get("/collection", CollectionShows)
+			trakt.Get("/popular", TraktPopularShows)
+			trakt.Get("/recommendations", TraktRecommendationsShows)
+			trakt.Get("/trending", TraktTrendingShows)
+			trakt.Get("/played", TraktMostPlayedShows)
+			trakt.Get("/watched", TraktMostWatchedShows)
+			trakt.Get("/collected", TraktMostCollectedShows)
+			trakt.Get("/anticipated", TraktMostAnticipatedShows)
+			trakt.Get("/progress", TraktProgressShows)
+			trakt.Get("/history", TraktHistoryShows)
 
 			lists := trakt.Group("/lists")
 			{
-				lists.GET("/", TVTraktLists)
-				lists.GET("/:user/:listId", UserlistShows)
+				lists.Get("/", TVTraktLists)
+				lists.Get("/:user/:listId", UserlistShows)
 			}
 
 			calendars := trakt.Group("/calendars")
 			{
-				calendars.GET("/", CalendarShows)
-				calendars.GET("/shows", TraktMyShows)
-				calendars.GET("/newshows", TraktMyNewShows)
-				calendars.GET("/premieres", TraktMyPremieres)
-				calendars.GET("/allshows", TraktAllShows)
-				calendars.GET("/allnewshows", TraktAllNewShows)
-				calendars.GET("/allpremieres", TraktAllPremieres)
+				calendars.Get("/", CalendarShows)
+				calendars.Get("/shows", TraktMyShows)
+				calendars.Get("/newshows", TraktMyNewShows)
+				calendars.Get("/premieres", TraktMyPremieres)
+				calendars.Get("/allshows", TraktAllShows)
+				calendars.Get("/allnewshows", TraktAllNewShows)
+				calendars.Get("/allpremieres", TraktAllPremieres)
 			}
 		}
 	}
-	show := r.Group("/show")
+	show := app.Group("/show")
 	{
-		show.GET("/:showId/seasons", ShowSeasons)
-		show.GET("/:showId/season/:season/links", ShowSeasonLinks(btService))
-		show.GET("/:showId/season/:season/play", ShowSeasonPlay(btService))
-		show.GET("/:showId/season/:season/episodes", ShowEpisodes)
-		show.GET("/:showId/season/:season/episode/:episode/infolabels", InfoLabelsEpisode(btService))
-		show.GET("/:showId/season/:season/episode/:episode/play", ShowEpisodePlaySelector("play", btService))
-		show.GET("/:showId/season/:season/episode/:episode/forceplay", ShowEpisodePlaySelector("forceplay", btService))
-		show.GET("/:showId/season/:season/episode/:episode/links", ShowEpisodePlaySelector("links", btService))
-		show.GET("/:showId/season/:season/episode/:episode/forcelinks", ShowEpisodePlaySelector("forcelinks", btService))
-		show.GET("/:showId/watchlist/add", AddShowToWatchlist)
-		show.GET("/:showId/watchlist/remove", RemoveShowFromWatchlist)
-		show.GET("/:showId/collection/add", AddShowToCollection)
-		show.GET("/:showId/collection/remove", RemoveShowFromCollection)
+		show.Get("/:showId/seasons", ShowSeasons)
+		show.Get("/:showId/season/:season/links", ShowSeasonLinks(btService))
+		show.Get("/:showId/season/:season/play", ShowSeasonPlay(btService))
+		show.Get("/:showId/season/:season/episodes", ShowEpisodes)
+		show.Get("/:showId/season/:season/episode/:episode/infolabels", InfoLabelsEpisode())
+		show.Get("/:showId/season/:season/episode/:episode/play", ShowEpisodePlaySelector("play", btService))
+		show.Get("/:showId/season/:season/episode/:episode/forceplay", ShowEpisodePlaySelector("forceplay", btService))
+		show.Get("/:showId/season/:season/episode/:episode/links", ShowEpisodePlaySelector("links", btService))
+		show.Get("/:showId/season/:season/episode/:episode/forcelinks", ShowEpisodePlaySelector("forcelinks", btService))
+		show.Get("/:showId/watchlist/add", AddShowToWatchlist)
+		show.Get("/:showId/watchlist/remove", RemoveShowFromWatchlist)
+		show.Get("/:showId/collection/add", AddShowToCollection)
+		show.Get("/:showId/collection/remove", RemoveShowFromCollection)
 	}
 	// TODO
 	// episode := r.Group("/episode")
@@ -201,107 +200,105 @@ func Routes(btService *bittorrent.BTService) *gin.Engine {
 	// 	episode.GET("/:episodeId/watchlist/add", AddEpisodeToWatchlist)
 	// }
 
-	library := r.Group("/library")
+	library := app.Group("/library")
 	{
-		library.GET("/movie/add/:tmdbId", AddMovie)
-		library.GET("/movie/remove/:tmdbId", RemoveMovie)
-		library.GET("/movie/list/add/:listId", AddMoviesList)
-		library.GET("/movie/play/:tmdbId", PlayMovie(btService))
-		library.GET("/show/add/:tmdbId", AddShow)
-		library.GET("/show/remove/:tmdbId", RemoveShow)
-		library.GET("/show/list/add/:listId", AddShowsList)
-		library.GET("/show/play/:showId/:season/:episode", PlayShow(btService))
+		library.Get("/movie/add/:tmdbId", AddMovie)
+		library.Get("/movie/remove/:tmdbId", RemoveMovie)
+		library.Get("/movie/list/add/:listId", AddMoviesList)
+		library.Get("/movie/play/:tmdbId", PlayMovie(btService))
+		library.Get("/show/add/:tmdbId", AddShow)
+		library.Get("/show/remove/:tmdbId", RemoveShow)
+		library.Get("/show/list/add/:listId", AddShowsList)
+		library.Get("/show/play/:showId/:season/:episode", PlayShow(btService))
 
-		library.GET("/update", UpdateLibrary)
+		library.Get("/update", UpdateLibrary)
 
 		// DEPRECATED
-		library.GET("/play/movie/:tmdbId", PlayMovie(btService))
-		library.GET("/play/show/:showId/season/:season/episode/:episode", PlayShow(btService))
+		library.Get("/play/movie/:tmdbId", PlayMovie(btService))
+		library.Get("/play/show/:showId/season/:season/episode/:episode", PlayShow(btService))
 	}
 
-	context := r.Group("/context")
+	context := app.Group("/context")
 	{
-		context.GET("/:media/:kodiID/play", ContextPlaySelector(btService))
+		context.Get("/:media/:kodiID/play", ContextPlaySelector())
 	}
 
-	provider := r.Group("/provider")
+	provider := app.Group("/provider")
 	{
-		provider.GET("/", ProviderList)
-		provider.GET("/:provider/check", ProviderCheck)
-		provider.GET("/:provider/enable", ProviderEnable)
-		provider.GET("/:provider/disable", ProviderDisable)
-		provider.GET("/:provider/failure", ProviderFailure)
-		provider.GET("/:provider/settings", ProviderSettings)
+		provider.Get("/", ProviderList)
+		provider.Get("/:provider/check", ProviderCheck)
+		provider.Get("/:provider/enable", ProviderEnable)
+		provider.Get("/:provider/disable", ProviderDisable)
+		provider.Get("/:provider/failure", ProviderFailure)
+		provider.Get("/:provider/settings", ProviderSettings)
 
-		provider.GET("/:provider/movie/:tmdbId", ProviderGetMovie)
-		provider.GET("/:provider/show/:showId/season/:season/episode/:episode", ProviderGetEpisode)
+		provider.Get("/:provider/movie/:tmdbId", ProviderGetMovie)
+		provider.Get("/:provider/show/:showId/season/:season/episode/:episode", ProviderGetEpisode)
 	}
 
-	allproviders := r.Group("/providers")
+	allproviders := app.Group("/providers")
 	{
-		allproviders.GET("/enable", ProvidersEnableAll)
-		allproviders.GET("/disable", ProvidersDisableAll)
+		allproviders.Get("/enable", ProvidersEnableAll)
+		allproviders.Get("/disable", ProvidersDisableAll)
 	}
 
-	repo := r.Group("/repository")
+	repo := app.Group("/repository")
 	{
-		repo.GET("/:user/:repository/*filepath", repository.GetAddonFiles)
-		repo.HEAD("/:user/:repository/*filepath", repository.GetAddonFilesHead)
+		repo.Get("/:user/:repository/*filepath", repository.GetAddonFiles)
+		repo.Head("/:user/:repository/*filepath", repository.GetAddonFilesHead)
 	}
 
-	trakt := r.Group("/trakt")
+	trakt := app.Group("/trakt")
 	{
-		trakt.GET("/authorize", AuthorizeTrakt)
-		trakt.GET("/select_list/:action/:media", SelectTraktUserList)
-		trakt.GET("/update", UpdateTrakt)
+		trakt.Get("/authorize", AuthorizeTrakt)
+		trakt.Get("/select_list/:action/:media", SelectTraktUserList)
+		trakt.Get("/update", UpdateTrakt)
 	}
 
-	r.GET("/migrate/:plugin", MigratePlugin)
+	app.Get("/migrate/:plugin", MigratePlugin)
 
-	r.GET("/setviewmode/:content_type", SetViewMode)
+	app.Get("/setviewmode/:content_type", SetViewMode)
 
-	r.GET("/subtitles", SubtitlesIndex)
-	r.GET("/subtitle/:id", SubtitleGet)
+	app.Get("/subtitles", SubtitlesIndex)
+	app.Get("/subtitle/:id", SubtitleGet)
 
-	r.GET("/play", Play(btService))
-	r.Any("/playuri", PlayURI(btService))
+	app.Get("/play", Play(btService))
+	app.All("/playuri", PlayURI(btService))
 
-	r.POST("/callbacks/:cid", providers.CallbackHandler)
+	app.Post("/callbacks/:cid", providers.CallbackHandler)
 
 	// r.GET("/notification", Notification(btService))
 
-	r.GET("/versions", Versions(btService))
+	app.Get("/versions", Versions(btService))
 
-	cmd := r.Group("/cmd")
+	cmd := app.Group("/cmd")
 	{
-		cmd.GET("/clear_cache_key/:key", ClearCache)
-		cmd.GET("/clear_page_cache", ClearPageCache)
-		cmd.GET("/clear_trakt_cache", ClearTraktCache)
-		cmd.GET("/clear_tmdb_cache", ClearTmdbCache)
+		cmd.Get("/clear_cache_key/:key", ClearCache)
+		cmd.Get("/clear_page_cache", ClearPageCache)
+		cmd.Get("/clear_trakt_cache", ClearTraktCache)
+		cmd.Get("/clear_tmdb_cache", ClearTmdbCache)
 
-		cmd.GET("/reset_path", ResetPath)
+		cmd.Get("/reset_path", ResetPath)
 
-		cmd.GET("/paste/:type", Pastebin)
+		cmd.Get("/paste/:type", Pastebin)
 
-		cmd.GET("/select_network_interface", SelectNetworkInterface)
-		cmd.GET("/select_strm_language", SelectStrmLanguage)
+		cmd.Get("/select_network_interface", SelectNetworkInterface)
+		cmd.Get("/select_strm_language", SelectStrmLanguage)
 
 		database := cmd.Group("/database")
 		{
-			database.GET("/clear_movies", ClearDatabaseMovies)
-			database.GET("/clear_shows", ClearDatabaseShows)
-			database.GET("/clear_torrent_history", ClearDatabaseTorrentHistory)
-			database.GET("/clear_search_history", ClearDatabaseSearchHistory)
-			database.GET("/clear_database", ClearDatabase)
+			database.Get("/clear_movies", ClearDatabaseMovies)
+			database.Get("/clear_shows", ClearDatabaseShows)
+			database.Get("/clear_torrent_history", ClearDatabaseTorrentHistory)
+			database.Get("/clear_search_history", ClearDatabaseSearchHistory)
+			database.Get("/clear_database", ClearDatabase)
 		}
 
 		cache := cmd.Group("/cache")
 		{
-			cache.GET("/clear_tmdb", ClearCacheTMDB)
-			cache.GET("/clear_trakt", ClearCacheTrakt)
-			cache.GET("/clear_cache", ClearCache)
+			cache.Get("/clear_tmdb", ClearCacheTMDB)
+			cache.Get("/clear_trakt", ClearCacheTrakt)
+			cache.Get("/clear_cache", ClearCache)
 		}
 	}
-
-	return r
 }

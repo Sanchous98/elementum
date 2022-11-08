@@ -8,15 +8,15 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/scrape"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/scrape"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/op/go-logging"
@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	addonZipRE       = regexp.MustCompile(`[\w]+\.[\w]+(\.[\w]+)?-\d+\.\d+\.\d+(-[\w]+\.?\d+)?\.zip`)
+	addonZipRE       = regexp.MustCompile(`\w+\.\w+(\.\w+)?-\d+\.\d+\.\d+(-\w+\.?\d+)?\.zip`)
 	addonChangelogRE = regexp.MustCompile(`changelog.*\.txt`)
 	log              = logging.MustGetLogger("repository")
 )
@@ -46,7 +46,7 @@ func getLastRelease(user string, repository string) string {
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	bodyBytes, _ := io.ReadAll(resp.Body)
 	return string(bodyBytes)
 }
 
@@ -74,11 +74,11 @@ func getAddonXML(user string, repository string) (string, error) {
 	}
 
 	defer resp.Body.Close()
-	retBytes, _ := ioutil.ReadAll(resp.Body)
+	retBytes, _ := io.ReadAll(resp.Body)
 	return string(retBytes), nil
 }
 
-func getAddons(user string, repository string) (*xbmc.AddonList, error) {
+func getAddons() (*xbmc.AddonList, error) {
 	var addons []xbmc.Addon
 
 	for _, repo := range []string{"plugin.video.elementum", "script.elementum.burst", "context.elementum"} {
@@ -99,9 +99,7 @@ func getAddons(user string, repository string) (*xbmc.AddonList, error) {
 
 // GetAddonsXML ...
 func GetAddonsXML(ctx *gin.Context) {
-	user := ctx.Params.ByName("user")
-	repository := ctx.Params.ByName("repository")
-	addons, err := getAddons(user, repository)
+	addons, err := getAddons()
 	if err != nil {
 		ctx.AbortWithError(404, errors.New("Unable to retrieve the remote's addons.xml file"))
 	}
@@ -110,9 +108,7 @@ func GetAddonsXML(ctx *gin.Context) {
 
 // GetAddonsXMLChecksum ...
 func GetAddonsXMLChecksum(ctx *gin.Context) {
-	user := ctx.Params.ByName("user")
-	repository := ctx.Params.ByName("repository")
-	addons, err := getAddons(user, repository)
+	addons, err := getAddons()
 	if len(addons.Addons) > 0 {
 		for _, a := range addons.Addons {
 			log.Infof("Last available release of %s: v%s", a.ID, a.Version)

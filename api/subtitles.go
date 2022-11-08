@@ -3,6 +3,7 @@ package api
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"io"
 	"net/url"
 	"os"
@@ -11,14 +12,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elgatito/elementum/scrape"
-	"github.com/elgatito/elementum/tmdb"
+	"github.com/Sanchous98/elementum/scrape"
+	"github.com/Sanchous98/elementum/tmdb"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/osdb"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
-	"github.com/gin-gonic/gin"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/osdb"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/op/go-logging"
 )
 
@@ -81,11 +81,10 @@ func appendEpisodePayloads(labels map[string]string, payloads *[]osdb.SearchPayl
 }
 
 // SubtitlesIndex ...
-func SubtitlesIndex(ctx *gin.Context) {
-	q := ctx.Request.URL.Query()
-	searchString := q.Get("searchstring")
-	languages := strings.Split(q.Get("languages"), ",")
-	preferredLanguage := q.Get("preferredlanguage")
+func SubtitlesIndex(ctx *fiber.Ctx) error {
+	searchString := ctx.Query("searchstring")
+	languages := strings.Split(ctx.Query("languages"), ",")
+	preferredLanguage := ctx.Query("preferredlanguage")
 
 	// First of all, we get Subtitles language settings from Kodi
 	// (there is a separate setting for that) in Player settings.
@@ -174,13 +173,13 @@ func SubtitlesIndex(ctx *gin.Context) {
 	client, err := osdb.NewClient()
 	if err != nil {
 		subLog.Error(err)
-		ctx.String(200, err.Error())
-		return
+		ctx.Status(fiber.StatusOK)
+		return err
 	}
 	if err := client.LogIn(config.Get().OSDBUser, config.Get().OSDBPass, config.Get().OSDBLanguage); err != nil {
 		subLog.Error(err)
-		ctx.String(200, err.Error())
-		return
+		ctx.Status(fiber.StatusOK)
+		return err
 	}
 
 	items := make(xbmc.ListItems, 0)
@@ -221,28 +220,28 @@ func SubtitlesIndex(ctx *gin.Context) {
 		items = append(items, item)
 	}
 
-	ctx.JSON(200, xbmc.NewView("", items))
+	ctx.Status(fiber.StatusOK)
+	return ctx.JSON(xbmc.NewView("", items))
 }
 
 // SubtitleGet ...
-func SubtitleGet(ctx *gin.Context) {
-	q := ctx.Request.URL.Query()
-	file := q.Get("file")
-	dl := q.Get("dl")
-
+func SubtitleGet(ctx *fiber.Ctx) error {
+	file := ctx.Query("file")
+	dl := ctx.Query("dl")
 	resp, err := scrape.GetClient().Get(dl)
+
 	if err != nil {
 		subLog.Error(err)
-		ctx.String(200, err.Error())
-		return
+		ctx.Status(fiber.StatusOK)
+		return err
 	}
 	defer resp.Body.Close()
 
 	reader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		subLog.Error(err)
-		ctx.String(200, err.Error())
-		return
+		ctx.Status(fiber.StatusOK)
+		return err
 	}
 	defer reader.Close()
 
@@ -259,14 +258,15 @@ func SubtitleGet(ctx *gin.Context) {
 	outFile, err := os.Create(filepath.Join(subtitlesPath, file))
 	if err != nil {
 		subLog.Error(err)
-		ctx.String(200, err.Error())
-		return
+		ctx.Status(fiber.StatusOK)
+		return err
 	}
 	defer outFile.Close()
 
 	io.Copy(outFile, reader)
 
-	ctx.JSON(200, xbmc.NewView("", xbmc.ListItems{
+	ctx.Status(fiber.StatusOK)
+	return ctx.JSON(xbmc.NewView("", xbmc.ListItems{
 		{Label: file, Path: outFile.Name()},
 	}))
 }

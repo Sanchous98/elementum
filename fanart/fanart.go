@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 )
 
 //go:generate msgp -o msgp.go -io=false -tests=false

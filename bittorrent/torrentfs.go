@@ -12,7 +12,7 @@ import (
 	"github.com/anacrolix/missinggo/httptoo"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/util"
+	"github.com/Sanchous98/elementum/util"
 )
 
 var tfsLog = logging.MustGetLogger("torrentfs")
@@ -45,7 +45,7 @@ func ServeTorrent(s *BTService, downloadPath string) http.Handler {
 
 		defer fr.Close()
 		http.ServeContent(w, r, url, time.Time{}, fr)
-		
+
 		// http.ServeContent(w, r, url, time.Time{}, rs)
 	}))
 }
@@ -53,11 +53,11 @@ func ServeTorrent(s *BTService, downloadPath string) http.Handler {
 // GetTorrentForPath ...
 func GetTorrentForPath(s *BTService, upath string, url string, r *http.Request) (*FileReader, error) {
 	path := util.DecodeFileURL(upath)
-	dir := string(http.Dir(path))
+	dir := path
 	if file, err := os.Open(filepath.Join(dir, url)); err == nil {
 		// make sure we don't open a file that's locked, as it can happen
 		// on BSD systems (darwin included)
-		if unlockerr := unlockFile(file); unlockerr != nil {
+		if unlockerr := unlockFile(); unlockerr != nil {
 			tfsLog.Errorf("Unable to unlock file because: %s", unlockerr)
 		}
 	}

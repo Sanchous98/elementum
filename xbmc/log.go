@@ -19,10 +19,6 @@ const (
 	LogError
 	// LogSevere ...
 	LogSevere
-	// LogFatal ...
-	LogFatal
-	// LogNone ...
-	LogNone
 )
 
 // LogBackend ...
@@ -34,9 +30,6 @@ func Log(args ...interface{}) {
 }
 
 // NewLogBackend ...
-func NewLogBackend() *LogBackend {
-	return &LogBackend{}
-}
 
 // Log ...
 func (b *LogBackend) Log(level logging.Level, calldepth int, rec *logging.Record) error {

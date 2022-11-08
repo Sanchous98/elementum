@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/fanart"
-	"github.com/elgatito/elementum/playcount"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/fanart"
+	"github.com/Sanchous98/elementum/playcount"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 
 	"github.com/jmcvetta/napping"
 )
@@ -109,7 +109,7 @@ func GetMovieGenres(language string) []*Genre {
 
 	cacheStore := cache.NewDBStore()
 	key := fmt.Sprintf("com.tmdb.genres.movies.%s", language)
-	if err := cacheStore.Get(key, &genres); err != nil || true {
+	if err := cacheStore.Get(key, &genres); err != nil {
 		err = MakeRequest(APIRequest{
 			URL: fmt.Sprintf("%s/genre/movie/list", tmdbEndpoint),
 			Params: napping.Params{
@@ -385,7 +385,7 @@ func RecentMovies(params DiscoverFilters, language string, page int) (Movies, in
 }
 
 // TopRatedMovies ...
-func TopRatedMovies(genre string, language string, page int) (Movies, int) {
+func TopRatedMovies(language string, page int) (Movies, int) {
 	return listMovies("movie/top_rated", "toprated", napping.Params{"language": language}, page)
 }
 

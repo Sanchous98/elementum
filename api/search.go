@@ -2,26 +2,26 @@ package api
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/providers"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/providers"
+	"github.com/Sanchous98/elementum/xbmc"
 
 	"github.com/cespare/xxhash"
-	"github.com/gin-gonic/gin"
 	"github.com/op/go-logging"
 )
 
 var searchLog = logging.MustGetLogger("search")
 
 // Search ...
-func Search(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+func Search(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 		query := ctx.Query("q")
 		keyboard := ctx.Query("keyboard")
 
@@ -29,26 +29,24 @@ func Search(btService *bittorrent.BTService) gin.HandlerFunc {
 			historyType := ""
 			if len(keyboard) > 0 {
 				if query = xbmc.Keyboard("", "LOCALIZE[30206]"); len(query) == 0 {
-					return
+					return nil
 				}
 				searchHistoryAppend(ctx, historyType, query)
-			} else {
-				searchHistoryList(ctx, historyType)
 			}
 
-			return
+			return searchHistoryList(ctx, historyType)
 		}
 
 		fakeTmdbID := strconv.FormatUint(xxhash.Sum64String(query), 10)
 		existingTorrent := btService.HasTorrentByQuery(query)
-		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]", xbmc.DialogExpiration.Existing)) {
+		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]")) {
 			xbmc.PlayURLWithTimeout(URLQuery(
 				URLForXBMC("/play"),
 				"resume", existingTorrent,
 				"query", query,
 				"tmdb", fakeTmdbID,
 				"type", "search"))
-			return
+			return nil
 		}
 
 		if torrent := InTorrentsMap(fakeTmdbID); torrent != nil {
@@ -57,7 +55,7 @@ func Search(btService *bittorrent.BTService) gin.HandlerFunc {
 				"query", query,
 				"tmdb", fakeTmdbID,
 				"type", "search"))
-			return
+			return nil
 		}
 
 		var torrents []*bittorrent.TorrentFile
@@ -74,7 +72,7 @@ func Search(btService *bittorrent.BTService) gin.HandlerFunc {
 
 		if len(torrents) == 0 {
 			xbmc.Notify("Elementum", "LOCALIZE[30205]", config.AddonIcon())
-			return
+			return nil
 		}
 
 		choices := make([]string, 0, len(torrents))
@@ -128,32 +126,25 @@ func Search(btService *bittorrent.BTService) gin.HandlerFunc {
 				"query", query,
 				"tmdb", fakeTmdbID,
 				"type", "search"))
-			return
 		}
+
+		return nil
 	}
 }
 
-func searchHistoryEmpty(historyType string) bool {
-	count := 0
-	err := database.Get().QueryRow("SELECT COUNT(*) FROM history_queries WHERE type = ?", historyType).Scan(&count)
-
-	return err != nil || count == 0
-}
-
-func searchHistoryAppend(ctx *gin.Context, historyType string, query string) {
+func searchHistoryAppend(ctx *fiber.Ctx, historyType string, query string) {
 	database.Get().AddSearchHistory(historyType, query)
 
 	go xbmc.UpdatePath(searchHistoryGetXbmcURL(historyType, query))
-	ctx.String(200, "")
+	ctx.Status(fiber.StatusOK)
 	return
 }
 
-func searchHistoryList(ctx *gin.Context, historyType string) {
+func searchHistoryList(ctx *fiber.Ctx, historyType string) error {
 	historyList := []string{}
 	rows, err := database.Get().Query(`SELECT query FROM history_queries WHERE type = ? ORDER BY dt DESC`, historyType)
 	if err != nil {
-		ctx.Error(err)
-		return
+		return err
 	}
 
 	query := ""
@@ -181,7 +172,7 @@ func searchHistoryList(ctx *gin.Context, historyType string) {
 			Label: query,
 			Path:  searchHistoryGetXbmcURL(historyType, query),
 			ContextMenu: [][]string{
-				[]string{"LOCALIZE[30406]", fmt.Sprintf("XBMC.RunPlugin(%s)",
+				{"LOCALIZE[30406]", fmt.Sprintf("XBMC.RunPlugin(%s)",
 					URLQuery(URLForXBMC("/search/remove"),
 						"query", query,
 						"type", historyType,
@@ -190,36 +181,39 @@ func searchHistoryList(ctx *gin.Context, historyType string) {
 		})
 	}
 
-	ctx.JSON(200, xbmc.NewView("", items))
+	ctx.Status(fiber.StatusOK)
+	ctx.JSON(xbmc.NewView("", items))
+
+	return nil
 }
 
 // SearchRemove ...
-func SearchRemove(ctx *gin.Context) {
-	query := ctx.DefaultQuery("query", "")
-	historyType := ctx.DefaultQuery("type", "")
+func SearchRemove(ctx *fiber.Ctx) error {
+	query := ctx.Query("query", "")
+	historyType := ctx.Query("type", "")
 
 	if len(query) == 0 {
-		return
+		return nil
 	}
 
 	log.Debugf("Removing query '%s' with history type '%s'", query, historyType)
 	database.Get().Exec("DELETE FROM history_queries WHERE query = ? AND type = ?", query, historyType)
 	xbmc.Refresh()
 
-	ctx.String(200, "")
-	return
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 // SearchClear ...
-func SearchClear(ctx *gin.Context) {
-	historyType := ctx.DefaultQuery("type", "")
+func SearchClear(ctx *fiber.Ctx) error {
+	historyType := ctx.Query("type", "")
 
 	log.Debugf("Cleaning queries with history type %s", historyType)
 	database.Get().Exec("DELETE FROM history_queries WHERE type = ?", historyType)
 	xbmc.Refresh()
 
-	ctx.String(200, "")
-	return
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 func searchHistoryGetXbmcURL(historyType string, query string) string {
@@ -229,13 +223,4 @@ func searchHistoryGetXbmcURL(historyType string, query string) string {
 	}
 
 	return URLQuery(URLForXBMC(urlPrefix+"/search"), "q", query)
-}
-
-func searchHistoryGetHTTPUrl(historyType string, query string) string {
-	urlPrefix := ""
-	if len(historyType) > 0 {
-		urlPrefix = "/" + historyType
-	}
-
-	return URLQuery(URLForHTTP(urlPrefix+"/search"), "q", query)
 }

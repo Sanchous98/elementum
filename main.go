@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "github.com/anacrolix/envpprof"
+	"github.com/gofiber/fiber/v2"
 
 	"io/ioutil"
 	"net/http"
@@ -17,19 +18,18 @@ import (
 	"github.com/anacrolix/tagflag"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/api"
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/library"
-	"github.com/elgatito/elementum/lockfile"
-	"github.com/elgatito/elementum/trakt"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/api"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/library"
+	"github.com/Sanchous98/elementum/lockfile"
+	"github.com/Sanchous98/elementum/trakt"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 var log = logging.MustGetLogger("main")
-var shuttingDown = false
 
 func init() {
 	sync.Enable()
@@ -146,24 +146,33 @@ func main() {
 	}
 	go watchParentProcess()
 
-	http.Handle("/", api.Routes(btService))
+	app := fiber.New()
 
-	http.Handle("/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		btService.ClientInfo(w)
-	}))
-	http.Handle("/debug/all", bittorrent.DebugAll(btService))
-	http.Handle("/debug/bundle", bittorrent.DebugBundle(btService))
+	api.Routes(app, btService)
+
+	app.Get("/info", func(ctx *fiber.Ctx) error {
+		btService.ClientInfo(ctx)
+		return nil
+	})
+
+	http.Handle("/debug/all", bittorrent.DebugAll())
+	http.Handle("/debug/bundle", bittorrent.DebugBundle())
 
 	http.Handle("/files/", bittorrent.ServeTorrent(btService, config.Get().DownloadPath))
-	http.Handle("/reload", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	app.Get("/reload", func(*fiber.Ctx) error {
 		btService.Reconfigure()
-	}))
-	http.Handle("/notification", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Notification(w, r, btService)
-	}))
-	http.Handle("/shutdown", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return nil
+	})
+
+	app.Get("/notification", func(ctx *fiber.Ctx) error {
+		Notification(ctx, btService)
+		return nil
+	})
+	app.Get("/shutdown", func(ctx *fiber.Ctx) error {
 		shutdown(false)
-	}))
+		return nil
+	})
 
 	xbmc.Notify("Elementum", "LOCALIZE[30208]", config.AddonIcon())
 
@@ -194,5 +203,5 @@ func main() {
 	go db.MaintenanceRefreshHandler()
 	go cacheDb.MaintenanceRefreshHandler()
 
-	http.ListenAndServe(":"+strconv.Itoa(config.Args.LocalPort), nil)
+	app.Listen(":" + strconv.Itoa(config.Args.LocalPort))
 }

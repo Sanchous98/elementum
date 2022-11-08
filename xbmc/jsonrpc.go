@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/elgatito/elementum/jsonrpc"
+	"github.com/Sanchous98/elementum/jsonrpc"
 )
 
 // Args ...
@@ -13,9 +13,6 @@ type Args []interface{}
 
 // Object ...
 type Object map[string]interface{}
-
-// Results ...
-var Results map[string]chan interface{}
 
 var (
 	// XBMCJSONRPCHosts ...

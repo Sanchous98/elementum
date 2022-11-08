@@ -88,9 +88,6 @@ func GetSettingInt(id string) int {
 }
 
 // GetSettingBool ...
-func GetSettingBool(id string) bool {
-	return GetSettingString(id) == "true"
-}
 
 // SetSetting ...
 func SetSetting(id string, value interface{}) {

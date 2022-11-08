@@ -12,10 +12,10 @@ import (
 	"github.com/op/go-logging"
 	"github.com/zeebo/bencode"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 const (
@@ -28,8 +28,6 @@ const (
 const (
 	// SortBySeeders ...
 	SortBySeeders = iota
-	// SortByResolution ...
-	SortByResolution
 	// SortBalanced ...
 	SortBalanced
 	// SortBySize ...

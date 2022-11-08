@@ -14,10 +14,10 @@ import (
 	"github.com/anacrolix/torrent/peer_protocol"
 	"github.com/dustin/go-humanize"
 
-	"github.com/elgatito/elementum/bittorrent/reader"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	estorage "github.com/elgatito/elementum/storage"
+	"github.com/Sanchous98/elementum/bittorrent/reader"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	estorage "github.com/Sanchous98/elementum/storage"
 )
 
 // Torrent ...
@@ -113,7 +113,7 @@ func NewTorrent(service *BTService, handle *gotorrent.Torrent, path string) *Tor
 
 // Storage ...
 func (t *Torrent) Storage() estorage.ElementumStorage {
-	return t.Service.DefaultStorage.GetTorrentStorage(t.infoHash)
+	return nil
 }
 
 // Watch ...
@@ -327,11 +327,11 @@ func (t *Torrent) Buffer(file *gotorrent.File) {
 	t.BufferLength = preBufferSize + postBufferSize
 
 	for i := preBufferStart; i <= preBufferEnd; i++ {
-		t.BufferPiecesProgress[int(i)] = 0
+		t.BufferPiecesProgress[i] = 0
 	}
 	for i := postBufferStart; i <= postBufferEnd; i++ {
-		t.BufferPiecesProgress[int(i)] = 0
-		t.BufferEndPieces = append(t.BufferEndPieces, int(i))
+		t.BufferPiecesProgress[i] = 0
+		t.BufferEndPieces = append(t.BufferEndPieces, i)
 	}
 
 	t.BufferPiecesLength = 0
@@ -375,7 +375,7 @@ func (t *Torrent) getBufferSize(f *gotorrent.File, off, length int64) (startPiec
 	pieceOffsetEnd := offsetEnd % pieceLength
 	endPiece = int(float64(offsetEnd) / float64(pieceLength))
 
-	piecesCount := int(t.Torrent.NumPieces())
+	piecesCount := t.Torrent.NumPieces()
 	if pieceOffsetEnd == 0 {
 		endPiece--
 	}
@@ -536,7 +536,7 @@ func (t *Torrent) Name() string {
 // Drop ...
 func (t *Torrent) Drop(removeFiles bool) {
 	log.Infof("Dropping torrent: %s", t.Name())
-	files := []string{}
+	files := make([]string, 0, len(t.Torrent.Files()))
 	for _, f := range t.Torrent.Files() {
 		files = append(files, f.Path())
 	}
@@ -564,7 +564,7 @@ func (t *Torrent) Drop(removeFiles bool) {
 		}
 
 		// Try to delete in N attemps
-		// this is because of opened handles on files which silently goes by
+		// this is because of opened handles on files which silently goes by,
 		// so we try until rm fails
 		left := 0
 	retryLoop:

@@ -1,15 +1,15 @@
 package api
 
 import (
-	mQuasar "github.com/elgatito/elementum/migrate/quasar"
-
-	"github.com/gin-gonic/gin"
+	mQuasar "github.com/Sanchous98/elementum/migrate/quasar"
+	"github.com/gofiber/fiber/v2"
 )
 
 // MigratePlugin gin proxy for /migrate/:plugin ...
-func MigratePlugin(ctx *gin.Context) {
-	plugin := ctx.Params.ByName("plugin")
+func MigratePlugin(ctx *fiber.Ctx) error {
+	plugin := ctx.Params("plugin")
 	if plugin == "quasar" {
 		mQuasar.Migrate()
 	}
+	return nil
 }

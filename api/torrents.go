@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -12,19 +13,17 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gin-gonic/gin"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 var (
-	torrentsLog    = logging.MustGetLogger("torrents")
-	cachedTorrents = map[int]string{}
+	torrentsLog = logging.MustGetLogger("torrents")
 )
 
 // TorrentsWeb ...
@@ -54,7 +53,7 @@ func AddToTorrentsMap(tmdbID string, torrent *bittorrent.TorrentFile) {
 		if b, err := torrent.MarshalJSON(); err == nil {
 			database.Get().AddTorrentHistory(tmdbID, torrent.InfoHash, b)
 		}
-		
+
 		return
 	}
 
@@ -86,7 +85,7 @@ func InTorrentsMap(tmdbID string) *bittorrent.TorrentFile {
 			torrent.LoadFromBytes(b)
 		}
 
-		if len(torrent.URI) > 0 && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", fmt.Sprintf("LOCALIZE[30260];;[COLOR gold]%s[/COLOR]", torrent.Title), xbmc.DialogExpiration.InTorrents)) {
+		if len(torrent.URI) > 0 && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", fmt.Sprintf("LOCALIZE[30260];;[COLOR gold]%s[/COLOR]", torrent.Title))) {
 			return torrent
 		}
 
@@ -132,12 +131,12 @@ func SetCachedTorrents(tmdbID string, torrents []*bittorrent.TorrentFile) error 
 }
 
 // ListTorrents ...
-func ListTorrents(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func ListTorrents(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		items := make(xbmc.ListItems, 0, len(btService.Torrents))
 		if len(btService.Torrents) == 0 {
-			ctx.JSON(200, xbmc.NewView("", items))
-			return
+			ctx.Status(fiber.StatusOK)
+			return ctx.JSON(xbmc.NewView("", items))
 		}
 
 		// torrentsLog.Debug("Currently downloading:")
@@ -218,30 +217,31 @@ func ListTorrents(btService *bittorrent.BTService) gin.HandlerFunc {
 				},
 			}
 			item.ContextMenu = [][]string{
-				[]string{"LOCALIZE[30230]", fmt.Sprintf("XBMC.PlayMedia(%s)", playURL)},
+				{"LOCALIZE[30230]", fmt.Sprintf("XBMC.PlayMedia(%s)", playURL)},
 				torrentAction,
-				[]string{"LOCALIZE[30232]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/delete/%s", i))},
-				[]string{"LOCALIZE[30276]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/delete/%s?files=1", i))},
-				[]string{"LOCALIZE[30308]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/move/%s", i))},
+				{"LOCALIZE[30232]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/delete/%s", i))},
+				{"LOCALIZE[30276]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/delete/%s?files=1", i))},
+				{"LOCALIZE[30308]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/torrents/move/%s", i))},
 				sessionAction,
 			}
 			item.IsPlayable = true
 			items = append(items, &item)
 		}
 
-		ctx.JSON(200, xbmc.NewView("", items))
+		ctx.Status(fiber.StatusOK)
+		return ctx.JSON(xbmc.NewView("", items))
 	}
 }
 
 // ListTorrentsWeb ...
-func ListTorrentsWeb(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func ListTorrentsWeb(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		torrents := make([]*TorrentsWeb, 0, len(btService.Torrents))
 
 		if len(btService.Torrents) == 0 {
-			ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-			ctx.JSON(200, torrents)
-			return
+			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+			ctx.Status(fiber.StatusOK)
+			return ctx.JSON(torrents)
 		}
 
 		// torrentsLog.Debugf("Currently downloading:")
@@ -288,130 +288,143 @@ func ListTorrentsWeb(btService *bittorrent.BTService) gin.HandlerFunc {
 			// torrentsLog.Debugf("- %.2f%% - %s - %s", progress, status, torrentName)
 		}
 
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.JSON(200, torrents)
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return ctx.JSON(torrents)
 	}
 }
 
 // PauseSession ...
-func PauseSession(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		// TODO: Add Global Pause
-		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
-	}
+func PauseSession(ctx *fiber.Ctx) error {
+	// TODO: Add Global Pause
+	xbmc.Refresh()
+	ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 // ResumeSession ...
-func ResumeSession(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		// TODO: Add Global Resume
-		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
-	}
+func ResumeSession(ctx *fiber.Ctx) error {
+	// TODO: Add Global Resume
+	xbmc.Refresh()
+	ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+	ctx.Status(fiber.StatusOK)
+	return nil
 }
 
 // AddTorrent ...
-func AddTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		uri := ctx.Request.FormValue("uri")
-		file, header, fileError := ctx.Request.FormFile("file")
+func AddTorrent(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		uri := ctx.FormValue("uri")
+		header, fileError := ctx.FormFile("file")
 
-		if file != nil && header != nil && fileError == nil {
-			t, err := saveTorrentFile(file, header)
-			if err == nil && t != "" {
-				uri = t
-			}
+		if fileError != nil {
+			ctx.Status(fiber.StatusInternalServerError)
+			return fileError
 		}
 
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		file, err := header.Open()
+
+		if err != nil {
+			ctx.Status(fiber.StatusInternalServerError)
+			return err
+		}
+
+		t, err := saveTorrentFile(file, header)
+		if err == nil && t != "" {
+			uri = t
+		}
+
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 
 		if uri == "" {
-			ctx.String(404, "Missing torrent URI")
-			return
+			ctx.Status(fiber.StatusNotFound)
+			return ctx.SendString("Missing torrent URI")
 		}
 		torrentsLog.Infof("Adding torrent from %s", uri)
 
-		_, err := btService.AddTorrent(uri)
+		_, err = btService.AddTorrent(uri)
 		if err != nil {
-			ctx.String(404, err.Error())
-			return
+			ctx.Status(fiber.StatusNotFound)
+			return err
 		}
 
 		torrentsLog.Infof("Downloading %s", uri)
 
 		xbmc.Refresh()
-		ctx.String(200, "")
+		ctx.Status(fiber.StatusOK)
+		return nil
 	}
 }
 
 // ResumeTorrent ...
-func ResumeTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		torrentID := ctx.Params.ByName("torrentId")
+func ResumeTorrent(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		torrentID := ctx.Params("torrentId")
 		torrent, err := GetTorrentFromParam(btService, torrentID)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to resume torrent with index %s", torrentID))
-			return
+			ctx.Status(fiber.StatusNotFound)
+			return fmt.Errorf("Unable to resume torrent with index %s", torrentID)
 		}
 
 		torrent.Resume()
 
 		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return nil
 	}
 }
 
 // MoveTorrent ...
-func MoveTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		torrentID := ctx.Params.ByName("torrentId")
+func MoveTorrent(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		torrentID := ctx.Params("torrentId")
 		torrent, err := GetTorrentFromParam(btService, torrentID)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to move torrent with index %s", torrentID))
-			return
+			ctx.Status(fiber.StatusInternalServerError)
+			return fmt.Errorf("Unable to move torrent with index %s", torrentID)
 		}
 
 		torrentsLog.Infof("Marking %s to be moved...", torrent.Name())
 		btService.MarkedToMove = torrent.InfoHash()
 
 		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return nil
 	}
 }
 
 // PauseTorrent ...
-func PauseTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		torrentID := ctx.Params.ByName("torrentId")
+func PauseTorrent(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		torrentID := ctx.Params("torrentId")
 		torrent, err := GetTorrentFromParam(btService, torrentID)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to pause torrent with index %s", torrentID))
-			return
+			ctx.Status(fiber.StatusInternalServerError)
+			return fmt.Errorf("Unable to pause torrent with index %s", torrentID)
 		}
 
 		torrent.Pause()
 
 		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return nil
 	}
 }
 
 // RemoveTorrent ...
-func RemoveTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func RemoveTorrent(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		deleteFiles := ctx.Query("files")
 
-		torrentID := ctx.Params.ByName("torrentId")
+		torrentID := ctx.Params("torrentId")
 		torrent, err := GetTorrentFromParam(btService, torrentID)
 		if err != nil {
-			ctx.Error(fmt.Errorf("Unable to remove torrent with index %s", torrentID))
-			return
+			ctx.Status(fiber.StatusNotFound)
+			return fmt.Errorf("Unable to remove torrent with index %s", torrentID)
 		}
 
 		// Delete torrent file
@@ -441,24 +454,21 @@ func RemoveTorrent(btService *bittorrent.BTService) gin.HandlerFunc {
 		}
 
 		xbmc.Refresh()
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.String(200, "")
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return nil
 	}
 }
 
 // Versions ...
-func Versions(btService *bittorrent.BTService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		type Versions struct {
-			Version   string `json:"version"`
-			UserAgent string `json:"user-agent"`
-		}
-		versions := Versions{
-			Version:   util.GetVersion(),
-			UserAgent: btService.UserAgent,
-		}
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		ctx.JSON(200, versions)
+func Versions(btService *bittorrent.BTService) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+		ctx.Status(fiber.StatusOK)
+		return ctx.JSON(map[string]string{
+			"version":    util.GetVersion(),
+			"user-agent": btService.UserAgent,
+		})
 	}
 }
 
@@ -468,11 +478,11 @@ func GetTorrentFromParam(btService *bittorrent.BTService, param string) (*bittor
 		return nil, errors.New("Empty param")
 	}
 
-	t, ok := btService.Torrents[param]
-	if !ok {
-		return nil, errors.New("Torrent not found")
+	if t, ok := btService.Torrents[param]; ok {
+		return t, nil
 	}
-	return t, nil
+
+	return nil, errors.New("Torrent not found")
 }
 
 func saveTorrentFile(file multipart.File, header *multipart.FileHeader) (string, error) {

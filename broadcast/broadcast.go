@@ -34,14 +34,6 @@ type receiver struct {
 	c  chan message
 }
 
-const (
-	// WATCHED ...
-	WATCHED = iota
-)
-
-// LocalBroadcasters ...
-var LocalBroadcasters = map[int]*Broadcaster{}
-
 // NewBroadcaster creates a new broadcaster with the necessary internal
 // structure. The uninitialized broadcaster is unsuitable to be listened or
 // written to.
@@ -53,9 +45,6 @@ func NewBroadcaster() *Broadcaster {
 }
 
 // NewLocalBroadcaster ...
-func NewLocalBroadcaster() *Broadcaster {
-	return NewBroadcaster()
-}
 
 // Write a value to all listening receivers.
 func (b *Broadcaster) Write(v interface{}) {

@@ -14,8 +14,8 @@ import (
 
 	gotorrent "github.com/anacrolix/torrent"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
 )
 
 // InitSqliteDB ...
@@ -91,9 +91,7 @@ func (d *SqliteDatabase) GetFilename() string {
 
 // MaintenanceRefreshHandler ...
 func (d *SqliteDatabase) MaintenanceRefreshHandler() {
-	backupPath := filepath.Join(config.Get().Info.Profile, d.backupFileName)
-
-	d.CreateBackup(backupPath)
+	d.CreateBackup()
 
 	// database.CacheCleanup()
 
@@ -106,7 +104,7 @@ func (d *SqliteDatabase) MaintenanceRefreshHandler() {
 		select {
 		case <-tickerBackup.C:
 			go func() {
-				d.CreateBackup(backupPath)
+				d.CreateBackup()
 			}()
 			// case <-tickerCache.C:
 			// 	go database.CacheCleanup()
@@ -117,7 +115,7 @@ func (d *SqliteDatabase) MaintenanceRefreshHandler() {
 }
 
 // CreateBackup ...
-func (d *SqliteDatabase) CreateBackup(backupPath string) {
+func (d *SqliteDatabase) CreateBackup() {
 	src := filepath.Join(config.Get().Info.Profile, d.fileName)
 	dest := filepath.Join(config.Get().Info.Profile, d.backupFileName)
 	if err := util.CopyFile(src, dest, true); err != nil {
@@ -275,7 +273,7 @@ func (d *SqliteDatabase) UpdateBTItem(infoHash string, mediaID int, mediaType st
 	}
 	infoStr += query
 
-	_, err := d.Exec(`INSERT OR REPLACE INTO tinfo (infohash, state, mediaID, mediaType, files, infos) VALUES (?, ?, ?, ?, ?, ?)`, infoHash, StatusActive, mediaID, mediaType, fileStr, infoStr)
+	_, err := d.Exec(`INSERT OR REPLACE INTO tinfo (infohash, mediaID, mediaType, files, infos) VALUES (?, ?, ?, ?, ?, ?)`, infoHash, mediaID, mediaType, fileStr, infoStr)
 	if err != nil {
 		log.Debugf("UpdateBTItem failed: %s", err)
 	}

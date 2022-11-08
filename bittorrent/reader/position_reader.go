@@ -4,8 +4,6 @@ import (
 	"github.com/op/go-logging"
 )
 
-var log = logging.MustGetLogger("reader")
-
 // PositionReader ...
 type PositionReader struct {
 	Pos         int64
@@ -55,8 +53,8 @@ func (p *PositionReader) byteRegionPieces(off, size int64) (begin, end int) {
 	}
 	begin = int(off / p.PieceLength)
 	end = int((off + size + p.PieceLength - 1) / p.PieceLength)
-	if end > int(p.Pieces) {
-		end = int(p.Pieces)
+	if end > p.Pieces {
+		end = p.Pieces
 	}
 	return
 }

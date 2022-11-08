@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/fanart"
-	"github.com/elgatito/elementum/playcount"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/fanart"
+	"github.com/Sanchous98/elementum/playcount"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 )
 
@@ -71,126 +71,11 @@ func setShowFanart(show *Show) *Show {
 	return show
 }
 
-func setShowsFanart(shows []*Shows) []*Shows {
-	wg := sync.WaitGroup{}
-	for i, show := range shows {
-		wg.Add(1)
-		go func(idx int, s *Shows) {
-			defer wg.Done()
-			shows[idx].Show = setShowFanart(s.Show)
-		}(i, show)
-	}
-	wg.Wait()
-
-	return shows
-}
-
-func setProgressShowsFanart(shows []*ProgressShow) []*ProgressShow {
-	wg := sync.WaitGroup{}
-	wg.Add(len(shows))
-	for i, show := range shows {
-		go func(idx int, s *ProgressShow) {
-			defer wg.Done()
-			if s != nil && s.Show != nil {
-				shows[idx].Show = setShowFanart(s.Show)
-			}
-		}(i, show)
-	}
-	wg.Wait()
-	return shows
-}
-
-func setCalendarShowsFanart(shows []*CalendarShow) []*CalendarShow {
-	wg := sync.WaitGroup{}
-	for i, show := range shows {
-		wg.Add(1)
-		go func(idx int, s *CalendarShow) {
-			defer wg.Done()
-			shows[idx].Show = setShowFanart(s.Show)
-		}(i, show)
-	}
-	wg.Wait()
-
-	return shows
-}
-
 // GetShow ...
-func GetShow(ID string) (show *Show) {
-	endPoint := fmt.Sprintf("shows/%s", ID)
-
-	params := napping.Params{
-		"extended": "full,images",
-	}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.show.%s", ID)
-	if err := cacheStore.Get(key, &show); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", fmt.Sprintf("Failed getting Trakt show (%s), check your logs.", ID), config.AddonIcon())
-			return
-		}
-		if err := resp.Unmarshal(&show); err != nil {
-			log.Warning(err)
-		}
-
-		cacheStore.Set(key, show, cacheExpiration)
-	}
-
-	return
-}
 
 // GetShowByTMDB ...
-func GetShowByTMDB(tmdbID string) (show *Show) {
-	endPoint := fmt.Sprintf("search/tmdb/%s?type=show", tmdbID)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.show.tmdb.%s", tmdbID)
-	if err := cacheStore.Get(key, &show); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt show using TMDB ID, check your logs.", config.AddonIcon())
-			return
-		}
-
-		var results ShowSearchResults
-		if err := resp.Unmarshal(&results); err != nil {
-			log.Warning(err)
-		}
-		if results != nil && len(results) > 0 && results[0].Show != nil {
-			show = results[0].Show
-		}
-		cacheStore.Set(key, show, cacheExpiration)
-	}
-	return
-}
 
 // GetShowByTVDB ...
-func GetShowByTVDB(tvdbID string) (show *Show) {
-	endPoint := fmt.Sprintf("search/tvdb/%s?type=show", tvdbID)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.show.tvdb.%s", tvdbID)
-	if err := cacheStore.Get(key, &show); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt show using TVDB ID, check your logs.", config.AddonIcon())
-			return
-		}
-		if err := resp.Unmarshal(&show); err != nil {
-			log.Warning(err)
-		}
-		cacheStore.Set(key, show, cacheExpiration)
-	}
-	return
-}
 
 // GetSeasonEpisodes ...
 func GetSeasonEpisodes(showID, seasonNumber int) (episodes []*Episode) {
@@ -214,127 +99,15 @@ func GetSeasonEpisodes(showID, seasonNumber int) (episodes []*Episode) {
 }
 
 // GetEpisode ...
-func GetEpisode(showID, seasonNumber, episodeNumber int) (episode *Episode) {
-	endPoint := fmt.Sprintf("shows/%d/seasons/%d/episodes/%d", showID, seasonNumber, episodeNumber)
-	params := napping.Params{"extended": "full,images"}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.episode.%d.%d.%d", showID, seasonNumber, episodeNumber)
-	if err := cacheStore.Get(key, &episode); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			return
-		}
-		if err := resp.Unmarshal(&episode); err != nil {
-			log.Warning(err)
-		}
-		cacheStore.Set(key, episode, cacheExpiration)
-	}
-	return
-}
 
 // GetEpisodeByID ...
-func GetEpisodeByID(id string) (episode *Episode) {
-	endPoint := fmt.Sprintf("search/trakt/%s?type=episode", id)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.episode.%s", id)
-	if err := cacheStore.Get(key, &episode); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt episode, check your logs.", config.AddonIcon())
-			return
-		}
-		if err := resp.Unmarshal(&episode); err != nil {
-			log.Warning(err)
-		}
-		cacheStore.Set(key, episode, cacheExpiration)
-	}
-	return
-}
 
 // GetEpisodeByTMDB ...
-func GetEpisodeByTMDB(tmdbID string) (episode *Episode) {
-	endPoint := fmt.Sprintf("search/tmdb/%s?type=episode", tmdbID)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.episode.tmdb.%s", tmdbID)
-	if err := cacheStore.Get(key, &episode); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt episode using TMDB ID, check your logs.", config.AddonIcon())
-			return
-		}
-
-		var results EpisodeSearchResults
-		if err := resp.Unmarshal(&results); err != nil {
-			log.Warning(err)
-		}
-		if results != nil && len(results) > 0 && results[0].Episode != nil {
-			episode = results[0].Episode
-		}
-		cacheStore.Set(key, episode, cacheExpiration)
-	}
-	return
-}
 
 // GetEpisodeByTVDB ...
-func GetEpisodeByTVDB(tvdbID string) (episode *Episode) {
-	endPoint := fmt.Sprintf("search/tvdb/%s?type=episode", tvdbID)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.episode.tvdb.%s", tvdbID)
-	if err := cacheStore.Get(key, &episode); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt episode using TVDB ID, check your logs.", config.AddonIcon())
-			return
-		}
-		if err := resp.Unmarshal(&episode); err != nil {
-			log.Warning(err)
-		}
-		cacheStore.Set(key, episode, cacheExpiration)
-	}
-	return
-}
 
 // SearchShows ...
 // TODO: Actually use this somewhere
-func SearchShows(query string, page string) (shows []*Shows, err error) {
-	endPoint := "search"
-
-	params := napping.Params{
-		"page":     page,
-		"limit":    strconv.Itoa(config.Get().ResultsPerPage),
-		"query":    query,
-		"extended": "full,images",
-	}.AsUrlValues()
-
-	resp, err := Get(endPoint, params)
-
-	if err != nil {
-		return
-	} else if resp.Status() != 200 {
-		log.Error(err)
-		return shows, fmt.Errorf("Bad status searching Trakt shows: %d", resp.Status())
-	}
-
-	if err := resp.Unmarshal(&shows); err != nil {
-		log.Warning(err)
-	}
-
-	return
-}
 
 // TopShows ...
 func TopShows(topCategory string, page string) (shows []*Shows, total int, err error) {

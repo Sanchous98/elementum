@@ -2,7 +2,6 @@ package bittorrent
 
 const (
 	movieType   = "movie"
-	showType    = "show"
 	episodeType = "episode"
 )
 
@@ -11,8 +10,6 @@ const (
 	StatusQueued = iota
 	// StatusChecking ...
 	StatusChecking
-	// StatusFinding ...
-	StatusFinding
 	// StatusPaused ...
 	StatusPaused
 	// StatusBuffering ...
@@ -23,10 +20,6 @@ const (
 	StatusFinished
 	// StatusSeeding ...
 	StatusSeeding
-	// StatusAllocating ...
-	StatusAllocating
-	// StatusStalled ...
-	StatusStalled
 )
 
 // StatusStrings ...
@@ -45,9 +38,7 @@ var StatusStrings = []string{
 
 const (
 	// Remove ...
-	Remove = iota
-	// Active ...
-	Active
+	Remove = 0
 )
 
 // DefaultTrackers ...

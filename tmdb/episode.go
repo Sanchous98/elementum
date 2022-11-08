@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/fanart"
-	"github.com/elgatito/elementum/playcount"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/fanart"
+	"github.com/Sanchous98/elementum/playcount"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 )
 

@@ -6,16 +6,6 @@ type EventPlayer struct {
 }
 
 // NewEventPlayer ...
-func NewEventPlayer() *EventPlayer {
-	retVal := -1
-	executeJSONRPCEx("EventPlayer_Create", &retVal, nil)
-	if retVal < 0 {
-		return nil
-	}
-	return &EventPlayer{
-		handle: retVal,
-	}
-}
 
 // PopEvent ...
 func (ep *EventPlayer) PopEvent() string {

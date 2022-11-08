@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package diskusage
@@ -21,7 +22,7 @@ func DiskUsage(path string) (*DiskStatus, error) {
 	lpFreeBytesAvailable := int64(0)
 	lpTotalNumberOfBytes := int64(0)
 	lpTotalNumberOfFreeBytes := int64(0)
-	syscall.Syscall6(uintptr(pGetDiskFreeSpaceEx), 4,
+	syscall.Syscall6(pGetDiskFreeSpaceEx, 4,
 		uintptr(unsafe.Pointer(lpDirectoryName)),
 		uintptr(unsafe.Pointer(&lpFreeBytesAvailable)),
 		uintptr(unsafe.Pointer(&lpTotalNumberOfBytes)),

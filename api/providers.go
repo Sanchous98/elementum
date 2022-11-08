@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ type ByEnabled []Addon
 
 func (a ByEnabled) Len() int           { return len(a) }
 func (a ByEnabled) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByEnabled) Less(i, j int) bool { return a[i].Enabled }
+func (a ByEnabled) Less(i, _ int) bool { return a[i].Enabled }
 
 // ByStatus ...
 type ByStatus []Addon
@@ -75,7 +75,7 @@ func ProviderList(ctx *gin.Context) {
 			IsPlayable: false,
 		}
 		item.ContextMenu = [][]string{
-			[]string{"LOCALIZE[30242]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/provider/%s/check", provider.ID))},
+			{"LOCALIZE[30242]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/provider/%s/check", provider.ID))},
 		}
 		if provider.Enabled {
 			item.ContextMenu = append(item.ContextMenu,

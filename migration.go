@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/repository"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/repository"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 func checkRepository() bool {

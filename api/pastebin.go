@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os/user"
 
-	humanize "github.com/dustin/go-humanize"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/xbmc"
+	"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,7 +34,7 @@ type PasteFields struct {
 }
 
 var pasteProjects = []PasteProject{
-	PasteProject{
+	{
 		URL:  "https://paste.ubuntu.com/",
 		Name: "Ubuntu Pastebin",
 		Fields: PasteFields{
@@ -47,7 +47,7 @@ var pasteProjects = []PasteProject{
 			Syntax: "text",
 		},
 	},
-	PasteProject{
+	{
 		URL:    "https://paste.fedoraproject.org/api/paste/submit",
 		Name:   "Fedora Pastebin",
 		IsJSON: true,
@@ -89,7 +89,7 @@ func Pastebin(ctx *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 
 	// u, err := user.Current()
 	// if err != nil {
@@ -145,7 +145,7 @@ func Pastebin(ctx *gin.Context) {
 		if !p.IsJSON {
 			pasteURL = resp.Request.URL.String()
 		} else {
-			content, _ := ioutil.ReadAll(resp.Body)
+			content, _ := io.ReadAll(resp.Body)
 
 			var respData map[string]*json.RawMessage
 			if err := json.Unmarshal(content, &respData); err != nil {

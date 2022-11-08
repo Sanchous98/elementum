@@ -2,76 +2,76 @@ package bittorrent
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // DebugAll ...
-func DebugAll(s *BTService) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+func DebugAll(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "text/plain")
 
-		writeHeader(w, "Torrent Client")
-		writeResponse(w, "/info")
+	writeHeader(ctx, "Torrent Client")
+	writeResponse(ctx, "/info")
 
-		writeHeader(w, "Debug Perf")
-		writeResponse(w, "/debug/perf")
+	writeHeader(ctx, "Debug Perf")
+	writeResponse(ctx, "/debug/perf")
 
-		writeHeader(w, "Debug LockTimes")
-		writeResponse(w, "/debug/lockTimes")
+	writeHeader(ctx, "Debug LockTimes")
+	writeResponse(ctx, "/debug/lockTimes")
 
-		writeHeader(w, "Debug Vars")
-		writeResponse(w, "/debug/vars")
-	})
+	writeHeader(ctx, "Debug Vars")
+	writeResponse(ctx, "/debug/vars")
+	return nil
 }
 
 // DebugBundle ...
-func DebugBundle(s *BTService) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logPath := xbmc.TranslatePath("special://logpath/kodi.log")
-		logFile, err := os.Open(logPath)
-		if err != nil {
-			log.Debugf("Could not open kodi.log: %#v", err)
-			return
-		}
-		defer logFile.Close()
+func DebugBundle(ctx *fiber.Ctx) error {
+	logPath := xbmc.TranslatePath("special://logpath/kodi.log")
+	logFile, err := os.Open(logPath)
+	if err != nil {
+		log.Debugf("Could not open kodi.log: %#v", err)
+		return nil
+	}
+	defer logFile.Close()
 
-		now := time.Now()
-		fileName := fmt.Sprintf("bundle_%d_%d_%d_%d_%d.log", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
-		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
-		w.Header().Set("Content-Type", "text/plain")
+	now := time.Now()
+	fileName := fmt.Sprintf("bundle_%d_%d_%d_%d_%d.log", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
+	ctx.Response().Header.Set("Content-Disposition", "attachment; filename="+fileName)
+	ctx.Response().Header.Set("Content-Type", "text/plain")
 
-		writeHeader(w, "Torrent Client")
-		writeResponse(w, "/info")
+	writeHeader(ctx, "Torrent Client")
+	writeResponse(ctx, "/info")
 
-		writeHeader(w, "Debug Perf")
-		writeResponse(w, "/debug/perf")
+	writeHeader(ctx, "Debug Perf")
+	writeResponse(ctx, "/debug/perf")
 
-		writeHeader(w, "Debug LockTimes")
-		writeResponse(w, "/debug/lockTimes")
+	writeHeader(ctx, "Debug LockTimes")
+	writeResponse(ctx, "/debug/lockTimes")
 
-		writeHeader(w, "Debug Vars")
-		writeResponse(w, "/debug/vars")
+	writeHeader(ctx, "Debug Vars")
+	writeResponse(ctx, "/debug/vars")
 
-		writeHeader(w, "kodi.log")
-		io.Copy(w, logFile)
-	})
+	writeHeader(ctx, "kodi.log")
+	io.Copy(ctx, logFile)
+
+	return nil
 }
 
-func writeHeader(w http.ResponseWriter, title string) {
-	w.Write([]byte("\n\n" + strings.Repeat("-", 70) + "\n"))
-	w.Write([]byte(title))
-	w.Write([]byte("\n" + strings.Repeat("-", 70) + "\n\n"))
+func writeHeader(ctx *fiber.Ctx, title string) {
+	ctx.Write([]byte("\n\n" + strings.Repeat("-", 70) + "\n"))
+	ctx.Write([]byte(title))
+	ctx.Write([]byte("\n" + strings.Repeat("-", 70) + "\n\n"))
 }
 
-func writeResponse(w http.ResponseWriter, url string) {
-	w.Write([]byte("Response for url: " + url + "\n\n"))
+func writeResponse(ctx *fiber.Ctx, url string) {
+	ctx.Write([]byte("Response for url: " + url + "\n\n"))
 
 	resp, err := http.Get(fmt.Sprintf("http://%s:%d%s", config.Args.LocalHost, config.Args.LocalPort, url))
 	if err != nil {
@@ -79,5 +79,5 @@ func writeResponse(w http.ResponseWriter, url string) {
 	}
 	defer resp.Body.Close()
 
-	io.Copy(w, resp.Body)
+	io.Copy(ctx, resp.Body)
 }

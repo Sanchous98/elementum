@@ -11,25 +11,6 @@ type View struct {
 // GUIIconOverlay ...
 type GUIIconOverlay int
 
-const (
-	// IconOverlayNone ...
-	IconOverlayNone GUIIconOverlay = iota
-	// IconOverlayRAR ...
-	IconOverlayRAR
-	// IconOverlayZip ...
-	IconOverlayZip
-	// IconOverlayLocked ...
-	IconOverlayLocked
-	// IconOverlayHasTrainer ...
-	IconOverlayHasTrainer
-	// IconOverlayTrained ...
-	IconOverlayTrained
-	// IconOverlayWatched ...
-	IconOverlayWatched
-	// IconOverlayHD ...
-	IconOverlayHD
-)
-
 // KodiVersion saves Kodi platform
 var KodiVersion = 0
 
@@ -291,4 +272,4 @@ func NewView(contentType string, items ListItems) *View {
 
 func (li ListItems) Len() int           { return len(li) }
 func (li ListItems) Swap(i, j int)      { li[i], li[j] = li[j], li[i] }
-func (li ListItems) Less(i, j int) bool { return false }
+func (li ListItems) Less(int, int) bool { return false }

@@ -3,6 +3,7 @@ package scrape
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/url"
@@ -14,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // PacStorage ...
@@ -59,14 +60,14 @@ func (p *PacStorage) Update() {
 	PacParser.dn = [][]string{}
 
 	// Find servers for specific cases
-	reUsual := regexp.MustCompile(`(?s)if \(yip === 1 \|\| shost === curarr\[i\]\).*?\{.*?return \"(.*?)\".*?\}`)
-	reSpecial := regexp.MustCompile(`(?s)if \(isInNet\(oip, special\[i\]\[0\], special\[i\]\[1\]\)\) \{return "(.*?)";\}`)
+	reUsual := regexp.MustCompile(`(?s)if \(yip === 1 \|\| shost === curarr\[i]\).*?\{.*?return "(.*?)".*?}`)
+	reSpecial := regexp.MustCompile(`(?s)if \(isInNet\(oip, special\[i]\[0], special\[i]\[1]\)\) \{return "(.*?)";}`)
 
 	// Find arrays containing domains
 	reDomains := regexp.MustCompile(`(?s)(d_\w+) = "(.*?)"`)
 
-	reListSpecial := regexp.MustCompile(`(?s)special = \[(.*?)\];`)
-	reDn := regexp.MustCompile(`(?s)dn = \{(.*?)\};`)
+	reListSpecial := regexp.MustCompile(`(?s)special = \[(.*?)];`)
+	reDn := regexp.MustCompile(`(?s)dn = \{(.*?)};`)
 
 	if match := reUsual.FindStringSubmatch(data); len(match) != 0 {
 		PacParser.serversUsual = getServers(match[1])
@@ -75,13 +76,13 @@ func (p *PacStorage) Update() {
 		PacParser.serversSpecial = getServers(match[1])
 	}
 
-	if match := reDn.FindString(string(data)); match != "" {
+	if match := reDn.FindString(data); match != "" {
 		for _, i := range strings.Split(strings.Replace(match, "'", "", -1), ", ") {
 			PacParser.dn = append(PacParser.dn, strings.Split(i, ":"))
 		}
 	}
 
-	if match := reListSpecial.FindString(string(data)); match != "" {
+	if match := reListSpecial.FindString(data); match != "" {
 		for _, i := range strings.Split(strings.Replace(strings.Replace(match, "],[", "]  ,  [", -1), `"`, "", -1), "  ,  ") {
 			s := strings.TrimRight(strings.Replace(strings.Replace(i, "[", "", -1), "]", "", -1), ",")
 			ary := strings.Split(strings.TrimRight(strings.TrimSpace(s), ","), ", ")
@@ -89,7 +90,7 @@ func (p *PacStorage) Update() {
 		}
 	}
 
-	if matches := reDomains.FindAllStringSubmatch(string(data), -1); len(matches) != 0 {
+	if matches := reDomains.FindAllStringSubmatch(data, -1); len(matches) != 0 {
 		ips := ""
 		domains := ""
 
@@ -126,7 +127,7 @@ func (p *PacStorage) GetFileData() string {
 	}
 
 	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ""
 	}
@@ -271,11 +272,4 @@ func ip2int(inp string) int {
 		return int(binary.BigEndian.Uint32(ip[12:16]))
 	}
 	return int(binary.BigEndian.Uint32(ip))
-}
-
-func int2ip(inp string) string {
-	nn, _ := strconv.Atoi(inp)
-	ip := make(net.IP, 4)
-	binary.BigEndian.PutUint32(ip, uint32(nn))
-	return ip.String()
 }

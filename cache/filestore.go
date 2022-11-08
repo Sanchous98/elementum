@@ -21,10 +21,6 @@ type fileStoreItem struct {
 }
 
 // NewFileStore ...
-func NewFileStore(path string) *FileStore {
-	os.MkdirAll(path, 0777)
-	return &FileStore{path}
-}
 
 // Set ...
 func (c *FileStore) Set(key string, value interface{}, expires time.Duration) error {
@@ -97,17 +93,17 @@ func (c *FileStore) Get(key string, value interface{}) error {
 }
 
 // Delete ...
-func (c *FileStore) Delete(key string) error {
+func (c *FileStore) Delete(string) error {
 	return nil
 }
 
 // Increment ...
-func (c *FileStore) Increment(key string, delta uint64) (uint64, error) {
+func (c *FileStore) Increment(string, uint64) (uint64, error) {
 	return 0, errNotSupported
 }
 
 // Decrement ...
-func (c *FileStore) Decrement(key string, delta uint64) (uint64, error) {
+func (c *FileStore) Decrement(string, uint64) (uint64, error) {
 	return 0, errNotSupported
 }
 

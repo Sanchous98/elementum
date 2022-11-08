@@ -6,9 +6,6 @@ import (
 )
 
 // FreeMemory runs FreeOSMemory() only
-func FreeMemory() {
-	debug.FreeOSMemory()
-}
 
 // FreeMemoryGC runs FreeOSMemory() and GC()
 func FreeMemoryGC() {

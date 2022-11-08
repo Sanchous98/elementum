@@ -180,7 +180,7 @@ func DialogConfirm(title string, message string) bool {
 }
 
 // DialogConfirmFocused ...
-func DialogConfirmFocused(title string, message string, autoclose int) bool {
+func DialogConfirmFocused(title string, message string) bool {
 	retVal := 0
 	// TODO: we need to set Yes button to the left, No to the right.
 	//       setting Yes to the right is not "nice" enough.
@@ -251,8 +251,3 @@ func GetWatchTimes() map[string]string {
 }
 
 // CloseAllDialogs ...
-func CloseAllDialogs() bool {
-	retVal := 0
-	executeJSONRPCEx("Dialog_CloseAll", &retVal, nil)
-	return retVal != 0
-}

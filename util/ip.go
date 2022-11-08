@@ -3,14 +3,13 @@ package util
 import (
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"net"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/config"
-
-	"github.com/gin-gonic/gin"
+	"github.com/Sanchous98/elementum/config"
 )
 
 // LocalIP ...
@@ -56,11 +55,11 @@ func GetHTTPHost() string {
 }
 
 // GetContextHTTPHost ...
-func GetContextHTTPHost(ctx *gin.Context) string {
+func GetContextHTTPHost(ctx *fiber.Ctx) string {
 	// We should always use local IP, instead of external one, if possible
 	// to avoid situations when ip has changed and Kodi expects it anyway.
 	host := "127.0.0.1"
-	if config.Args.RemoteHost != "127.0.0.1" || !strings.HasPrefix(ctx.Request.RemoteAddr, "127.0.0.1") {
+	if config.Args.RemoteHost != host || !strings.HasPrefix(ctx.Hostname(), host) {
 		if localIP, err := LocalIP(); err == nil {
 			host = localIP.String()
 		}

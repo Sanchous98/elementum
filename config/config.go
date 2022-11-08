@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/xbmc"
 
 	"github.com/dustin/go-humanize"
 	"github.com/op/go-logging"
@@ -184,9 +184,9 @@ type Addon struct {
 }
 
 var (
-	config          = &Configuration{}
-	lock            = sync.RWMutex{}
-	settingsAreSet  = false
+	config = &Configuration{}
+	lock   = sync.RWMutex{}
+
 	settingsWarning = ""
 
 	proxyTypes = []string{
@@ -554,7 +554,7 @@ func Reload() *Configuration {
 				log.Debugf("Total system memory: %s\n", humanize.Bytes(memory.TotalMemory()))
 				log.Debugf("Automatically selected memory size: %s\n", humanize.Bytes(uint64(newConfig.MemorySize)))
 				if newConfig.MemorySize > maxMemorySize {
-					log.Debugf("Selected memory size (%s) is bigger than maximum for auto-select (%s), so we decrease memory size to maximum allowed: %s", humanize.Bytes(uint64(mem)), humanize.Bytes(uint64(maxMemorySize)), humanize.Bytes(uint64(maxMemorySize)))
+					log.Debugf("Selected memory size (%s) is bigger than maximum for auto-select (%s), so we decrease memory size to maximum allowed: %s", humanize.Bytes(mem), humanize.Bytes(uint64(maxMemorySize)), humanize.Bytes(uint64(maxMemorySize)))
 					newConfig.MemorySize = maxMemorySize
 				}
 			}
@@ -730,7 +730,7 @@ func getKodiBufferSize() int {
 
 	defer xmlFile.Close()
 
-	b, _ := ioutil.ReadAll(xmlFile)
+	b, _ := io.ReadAll(xmlFile)
 
 	var as *xbmc.AdvancedSettings
 	if err = xml.Unmarshal(b, &as); err != nil {

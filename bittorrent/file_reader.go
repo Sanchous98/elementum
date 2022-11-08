@@ -7,9 +7,9 @@ import (
 
 	gotorrent "github.com/anacrolix/torrent"
 
-	"github.com/elgatito/elementum/bittorrent/reader"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent/reader"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // FileReader ...

@@ -1,24 +1,20 @@
 package api
 
 import (
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/xbmc"
-	"github.com/gin-gonic/gin"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/xbmc"
+	"github.com/gofiber/fiber/v2"
 )
 
-func init() {
-	gin.SetMode(gin.ReleaseMode)
-}
-
 // Index ...
-func Index(ctx *gin.Context) {
+func Index(ctx *fiber.Ctx) error {
 	action := ctx.Query("action")
 	if action == "search" || action == "manualsearch" {
-		SubtitlesIndex(ctx)
-		return
+		return SubtitlesIndex(ctx)
 	}
 
-	ctx.JSON(200, xbmc.NewView("", xbmc.ListItems{
+	ctx.Status(fiber.StatusOK)
+	return ctx.JSON(xbmc.NewView("", xbmc.ListItems{
 		{Label: "LOCALIZE[30214]", Path: URLForXBMC("/movies/"), Thumbnail: config.AddonResource("img", "movies.png")},
 		{Label: "LOCALIZE[30215]", Path: URLForXBMC("/shows/"), Thumbnail: config.AddonResource("img", "tv.png")},
 		{Label: "LOCALIZE[30209]", Path: URLForXBMC("/search"), Thumbnail: config.AddonResource("img", "search.png")},

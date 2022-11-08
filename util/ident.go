@@ -5,7 +5,7 @@ import (
 	"encoding/base32"
 	"fmt"
 
-	"github.com/elgatito/elementum/config"
+	"github.com/Sanchous98/elementum/config"
 )
 
 var (

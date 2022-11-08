@@ -10,14 +10,10 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/bittorrent/reader"
-	"github.com/elgatito/elementum/config"
-	estorage "github.com/elgatito/elementum/storage"
-	"github.com/elgatito/elementum/xbmc"
-)
-
-const (
-	chunkSize = 1024 * 16
+	"github.com/Sanchous98/elementum/bittorrent/reader"
+	"github.com/Sanchous98/elementum/config"
+	estorage "github.com/Sanchous98/elementum/storage"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 var (
@@ -67,10 +63,10 @@ func (s *Storage) GetReadaheadSize() int64 {
 }
 
 // SetReadaheadSize ...
-func (s *Storage) SetReadaheadSize(size int64) {}
+func (s *Storage) SetReadaheadSize(int64) {}
 
 // SetReaders ...
-func (s *Storage) SetReaders(readers []*reader.PositionReader) {}
+func (s *Storage) SetReaders([]*reader.PositionReader) {}
 
 // OpenTorrent ...
 func (s *Storage) OpenTorrent(info *metainfo.Info, infoHash metainfo.Hash) (storage.TorrentImpl, error) {

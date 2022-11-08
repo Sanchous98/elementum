@@ -3,26 +3,20 @@ package providers
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"github.com/gofiber/fiber/v2"
 	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/tvdb"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
-	"github.com/gin-gonic/gin"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/tvdb"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/op/go-logging"
-)
-
-const (
-	// if >= 80% of episodes have absolute numbers, assume it's because we need it
-	mixAbsoluteNumberPercentage = 0.8
 )
 
 // AddonSearcher ...
@@ -57,20 +51,21 @@ func RemoveCallback(cid string) {
 }
 
 // CallbackHandler ...
-func CallbackHandler(ctx *gin.Context) {
-	cid := ctx.Params.ByName("cid")
+func CallbackHandler(ctx *fiber.Ctx) error {
+	cid := ctx.Params("cid")
 	cbLock.RLock()
 	c, ok := callbacks[cid]
 	cbLock.RUnlock()
 	// maybe the callback was already removed because we were too slow,
 	// it's fine.
 	if !ok {
-		return
+		return nil
 	}
 	RemoveCallback(cid)
-	body, _ := ioutil.ReadAll(ctx.Request.Body)
-	c <- body
+	c <- ctx.Request().Body()
 	close(c)
+
+	return nil
 }
 
 func getSearchers() []interface{} {

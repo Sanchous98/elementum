@@ -2,13 +2,14 @@ package api
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"net/url"
 	"strconv"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -103,15 +104,14 @@ func Play(btService *bittorrent.BTService) gin.HandlerFunc {
 }
 
 // PlayTorrent ...
-func PlayTorrent(ctx *gin.Context) {
+func PlayTorrent(ctx *fiber.Ctx) error {
+	ctx.Status(fiber.StatusOK)
 	retval := xbmc.DialogInsert()
 	if retval["path"] == "" {
-		return
+		return nil
 	}
 	xbmc.PlayURLWithTimeout(URLQuery(URLForXBMC("/play"), "uri", retval["path"]))
-
-	ctx.String(200, "")
-	return
+	return nil
 }
 
 // PlayURI ...

@@ -14,9 +14,9 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 var (
@@ -135,9 +135,6 @@ func NewBoltDB() (*BoltDatabase, error) {
 }
 
 // GetBolt returns common database
-func GetBolt() *BoltDatabase {
-	return boltDatabase
-}
 
 // GetCache returns Cache database
 func GetCache() *BoltDatabase {

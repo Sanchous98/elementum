@@ -9,12 +9,12 @@ import (
 	"github.com/anacrolix/sync"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
-	humanize "github.com/dustin/go-humanize"
+	"github.com/dustin/go-humanize"
 
 	"github.com/RoaringBitmap/roaring"
 
-	"github.com/elgatito/elementum/bittorrent/reader"
-	estorage "github.com/elgatito/elementum/storage"
+	"github.com/Sanchous98/elementum/bittorrent/reader"
+	estorage "github.com/Sanchous98/elementum/storage"
 )
 
 // Cache ...
@@ -73,13 +73,13 @@ func (c *Cache) SetReaders(readers []*reader.PositionReader) {
 }
 
 // GetTorrentStorage ...
-func (c *Cache) GetTorrentStorage(hash string) estorage.TorrentStorage {
+func (c *Cache) GetTorrentStorage(string) estorage.TorrentStorage {
 	return nil
 }
 
 // OpenTorrent ...
-func (c *Cache) OpenTorrent(info *metainfo.Info, infoHash metainfo.Hash) (storage.TorrentImpl, error) {
-	return nil, nil
+func (c *Cache) OpenTorrent(*metainfo.Info, metainfo.Hash) (storage.TorrentImpl, error) {
+	return storage.TorrentImpl{}, nil
 }
 
 // Piece ...

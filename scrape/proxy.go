@@ -3,6 +3,7 @@ package scrape
 import (
 	"bytes"
 	"crypto/tls"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -12,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/config"
+	"github.com/Sanchous98/elementum/config"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/elazarl/goproxy"
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 	"github.com/robertkrimen/otto"
 )
 
@@ -36,8 +37,6 @@ var (
 var AlwaysHTTPMitm goproxy.FuncHttpsHandler = func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
 	return &goproxy.ConnectAction{Action: goproxy.ConnectMitm, TLSConfig: CustomTLS(&goproxy.GoproxyCa)}, host
 }
-
-var goproxySignerVersion = ":goroxy1"
 
 // CustomTLS ...
 func CustomTLS(ca *tls.Certificate) func(host string, ctx *goproxy.ProxyCtx) (*tls.Config, error) {
@@ -66,7 +65,7 @@ func handleRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *ht
 		dumpRequest(req, ctx, false, true)
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(req.Body)
+	bodyBytes, _ := io.ReadAll(req.Body)
 	defer req.Body.Close()
 
 	ctx.UserData = bodyBytes
@@ -166,7 +165,7 @@ func solveCloudFlare(resp *http.Response, ctx *goproxy.ProxyCtx) (*http.Response
 	}
 
 	time.Sleep(time.Duration(4) * time.Second)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, false
 	}
@@ -227,7 +226,7 @@ func solveCloudFlare(resp *http.Response, ctx *goproxy.ProxyCtx) (*http.Response
 	re2 := regexp.MustCompile("\\s{3,}[a-z](?: = |\\.).+")
 	re3 := regexp.MustCompile("[\\n\\\\']")
 	re4 := regexp.MustCompile(";\\s*\\d+\\s*$")
-	re5 := regexp.MustCompile("a\\.value\\s*\\=")
+	re5 := regexp.MustCompile("a\\.value\\s*=")
 
 	js = re1.FindAllStringSubmatch(js, -1)[0][1]
 	js = strings.Replace(js, "s,t,o,p,b,r,e,a,k,i,n,g,f,", "s,t = \""+host+"\",o,p,b,r,e,a,k,i,n,g,f,", 1)

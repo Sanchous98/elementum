@@ -20,12 +20,10 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/scrape"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/scrape"
+	"github.com/Sanchous98/elementum/xbmc"
 )
-
-var torrentFileLog = logging.MustGetLogger("torrentFile")
 
 // TorrentFile represents a physical torrent file
 type TorrentFile struct {
@@ -84,26 +82,26 @@ const (
 var (
 	// [pр] actually contains "p" from latin and "р" from cyrillic, which looks the same, but it's not.
 	resolutionTags = []map[*regexp.Regexp]int{
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+240[pр]\W*`): Resolution240p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+480[pр]\W*`): Resolution480p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(720[pр]|1280x720)\W*`): Resolution720p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(1080[piр]|1920x1080)\W*`): Resolution1080p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+1440[pр]\W*`): Resolution2K},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(4k|2160[pр]|UHD)\W*`): Resolution4k},
+		{regexp.MustCompile(`(?i)\W+240[pр]\W*`): Resolution240p},
+		{regexp.MustCompile(`(?i)\W+480[pр]\W*`): Resolution480p},
+		{regexp.MustCompile(`(?i)\W+(720[pр]|1280x720)\W*`): Resolution720p},
+		{regexp.MustCompile(`(?i)\W+(1080[piр]|1920x1080)\W*`): Resolution1080p},
+		{regexp.MustCompile(`(?i)\W+1440[pр]\W*`): Resolution2K},
+		{regexp.MustCompile(`(?i)\W+(4k|2160[pр]|UHD)\W*`): Resolution4k},
 
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(vhs\-?rip)\W*`): Resolution240p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(tv\-?rip|sat\-?rip|iptv\-?rip|xvid|dvd|hdtv|web\-(dl)?rip)\W*`): Resolution480p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(hd720p?|hd\-?rip|b[rd]rip)\W*`): Resolution720p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(hd1080p?|fullhd|fhd|blu\W*ray|bd\W*remux)\W*`): Resolution1080p},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(2k)\W*`): Resolution2K},
-		map[*regexp.Regexp]int{regexp.MustCompile(`(?i)\W+(4k|hd4k)\W*`): Resolution4k},
+		{regexp.MustCompile(`(?i)\W+(vhs-?rip)\W*`): Resolution240p},
+		{regexp.MustCompile(`(?i)\W+(tv-?rip|sat-?rip|iptv-?rip|xvid|dvd|hdtv|web-(dl)?rip)\W*`): Resolution480p},
+		{regexp.MustCompile(`(?i)\W+(hd720p?|hd-?rip|b[rd]rip)\W*`): Resolution720p},
+		{regexp.MustCompile(`(?i)\W+(hd1080p?|fullhd|fhd|blu\W*ray|bd\W*remux)\W*`): Resolution1080p},
+		{regexp.MustCompile(`(?i)\W+(2k)\W*`): Resolution2K},
+		{regexp.MustCompile(`(?i)\W+(4k|hd4k)\W*`): Resolution4k},
 	}
 	// Resolutions ...
 	Resolutions = []string{"", "240p", "480p", "720p", "1080p", "2K", "4K"}
 	// Colors ...
 	Colors = []string{"", "FFFC3401", "FFA56F01", "FF539A02", "FF0166FC", "FFF15052", "FF6BB9EC"}
 	// Size regexp
-	sizeMatcher = regexp.MustCompile(`^\s*([\d\.\,]+)\s*`)
+	sizeMatcher = regexp.MustCompile(`^\s*([\d.,]+)\s*`)
 )
 
 const (
@@ -338,7 +336,7 @@ func (t *TorrentFile) initializeFromMagnet() {
 	if len(t.Trackers) == 0 {
 		t.Trackers = make([]string, 0)
 		for _, tracker := range vals["tr"] {
-			t.Trackers = append(t.Trackers, strings.Replace(string(tracker), "\\", "", -1))
+			t.Trackers = append(t.Trackers, strings.Replace(tracker, "\\", "", -1))
 		}
 	}
 }

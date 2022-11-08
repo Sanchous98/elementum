@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/library"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/trakt"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/library"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/trakt"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/gin-gonic/gin"
 )
 
@@ -418,7 +418,7 @@ func renderTraktMovies(ctx *gin.Context, movies []*trakt.Movies, total int, page
 			item.Path = contextPlayURL(thisURL, false)
 
 			libraryActions := [][]string{
-				[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+				{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
 			}
 			if err := library.IsDuplicateMovie(tmdbID); err != nil || library.IsAddedToLibrary(tmdbID, library.MovieType) {
 				libraryActions = append(libraryActions, []string{"LOCALIZE[30283]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/movie/add/%d?force=true", movieListing.Movie.IDs.TMDB))})
@@ -440,7 +440,7 @@ func renderTraktMovies(ctx *gin.Context, movies []*trakt.Movies, total int, page
 			item.ContextMenu = [][]string{
 				watchlistAction,
 				collectionAction,
-				[]string{"LOCALIZE[30034]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/movies"))},
+				{"LOCALIZE[30034]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/movies"))},
 			}
 			item.ContextMenu = append(libraryActions, item.ContextMenu...)
 
@@ -603,7 +603,7 @@ func TraktProgressShows(ctx *gin.Context) {
 		xbmc.Notify("Elementum", err.Error(), config.AddonIcon())
 	}
 
-	renderProgressShows(ctx, shows, -1, 0)
+	renderProgressShows(ctx, shows)
 }
 
 func renderTraktShows(ctx *gin.Context, shows []*trakt.Shows, total int, page int) {
@@ -664,7 +664,7 @@ func renderTraktShows(ctx *gin.Context, shows []*trakt.Shows, total int, page in
 		item.ContextMenu = [][]string{
 			watchlistAction,
 			collectionAction,
-			[]string{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
+			{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
 		}
 		item.ContextMenu = append(libraryActions, item.ContextMenu...)
 
@@ -963,7 +963,7 @@ func renderCalendarMovies(ctx *gin.Context, movies []*trakt.CalendarMovie, total
 			item.Path = contextPlayURL(thisURL, false)
 
 			libraryActions := [][]string{
-				[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+				{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
 			}
 			if err := library.IsDuplicateMovie(tmdbID); err != nil || library.IsAddedToLibrary(tmdbID, library.MovieType) {
 				libraryActions = append(libraryActions, []string{"LOCALIZE[30283]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/movie/add/%d?force=true", movieListing.Movie.IDs.TMDB))})
@@ -985,7 +985,7 @@ func renderCalendarMovies(ctx *gin.Context, movies []*trakt.CalendarMovie, total
 			item.ContextMenu = [][]string{
 				watchlistAction,
 				collectionAction,
-				[]string{"LOCALIZE[30034]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/movies"))},
+				{"LOCALIZE[30034]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/movies"))},
 			}
 			item.ContextMenu = append(libraryActions, item.ContextMenu...)
 
@@ -1160,7 +1160,7 @@ func renderCalendarShows(ctx *gin.Context, shows []*trakt.CalendarShow, total in
 			item.ContextMenu = [][]string{
 				watchlistAction,
 				collectionAction,
-				[]string{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
+				{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
 			}
 			item.ContextMenu = append(libraryActions, item.ContextMenu...)
 
@@ -1196,7 +1196,7 @@ func renderCalendarShows(ctx *gin.Context, shows []*trakt.CalendarShow, total in
 	ctx.JSON(200, xbmc.NewView("tvshows", items))
 }
 
-func renderProgressShows(ctx *gin.Context, shows []*trakt.ProgressShow, total int, page int) {
+func renderProgressShows(ctx *gin.Context, shows []*trakt.ProgressShow) {
 	language := config.Get().Language
 
 	colorDate := config.Get().TraktProgressColorDate
@@ -1301,9 +1301,9 @@ func renderProgressShows(ctx *gin.Context, shows []*trakt.ProgressShow, total in
 			item.Path = contextPlayURL(thisURL, false)
 
 			item.ContextMenu = [][]string{
-				[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
-				[]string{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
-				[]string{markWatchedLabel, fmt.Sprintf("XBMC.RunPlugin(%s)", markWatchedURL)},
+				{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+				{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
+				{markWatchedLabel, fmt.Sprintf("XBMC.RunPlugin(%s)", markWatchedURL)},
 			}
 			if config.Get().Platform.Kodi < 17 {
 				item.ContextMenu = append(item.ContextMenu,

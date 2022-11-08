@@ -20,15 +20,15 @@ import (
 	"github.com/op/go-logging"
 	"github.com/sanity-io/litter"
 
-	"github.com/elgatito/elementum/broadcast"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/library"
-	estorage "github.com/elgatito/elementum/storage"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/trakt"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/broadcast"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/library"
+	estorage "github.com/Sanchous98/elementum/storage"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/trakt"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 const (

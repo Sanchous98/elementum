@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/playcount"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/playcount"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 )
 
@@ -71,119 +71,11 @@ func setFanart(movie *Movie) *Movie {
 	return movie
 }
 
-func setFanarts(movies []*Movies) []*Movies {
-	wg := sync.WaitGroup{}
-	for i, movie := range movies {
-		wg.Add(1)
-		go func(idx int, m *Movies) {
-			defer wg.Done()
-			movies[idx].Movie = setFanart(m.Movie)
-		}(i, movie)
-	}
-	wg.Wait()
-
-	return movies
-}
-
-func setCalendarFanarts(movies []*CalendarMovie) []*CalendarMovie {
-	wg := sync.WaitGroup{}
-	for i, movie := range movies {
-		wg.Add(1)
-		go func(idx int, m *CalendarMovie) {
-			defer wg.Done()
-			movies[idx].Movie = setFanart(m.Movie)
-		}(i, movie)
-	}
-	wg.Wait()
-
-	return movies
-}
-
 // GetMovie ...
-func GetMovie(ID string) (movie *Movie) {
-	endPoint := fmt.Sprintf("movies/%s", ID)
-
-	params := napping.Params{
-		"extended": "full,images",
-	}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.movie.%s", ID)
-	if err := cacheStore.Get(key, &movie); err != nil {
-		resp, err := Get(endPoint, params)
-
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", fmt.Sprintf("Failed getting Trakt movie (%s), check your logs.", ID), config.AddonIcon())
-		}
-
-		if err := resp.Unmarshal(&movie); err != nil {
-			log.Warning(err)
-		}
-
-		cacheStore.Set(key, movie, cacheExpiration)
-	}
-
-	return
-}
 
 // GetMovieByTMDB ...
-func GetMovieByTMDB(tmdbID string) (movie *Movie) {
-	endPoint := fmt.Sprintf("search/tmdb/%s?type=movie", tmdbID)
-
-	params := napping.Params{}.AsUrlValues()
-
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.trakt.movie.tmdb.%s", tmdbID)
-	if err := cacheStore.Get(key, &movie); err != nil {
-		resp, err := Get(endPoint, params)
-		if err != nil {
-			log.Error(err)
-			xbmc.Notify("Elementum", "Failed getting Trakt movie using TMDB ID, check your logs.", config.AddonIcon())
-			return
-		}
-
-		var results MovieSearchResults
-		if err := resp.Unmarshal(&results); err != nil {
-			log.Warning(err)
-		}
-		if results != nil && len(results) > 0 && results[0].Movie != nil {
-			movie = results[0].Movie
-		}
-		cacheStore.Set(key, movie, cacheExpiration)
-	}
-	return
-}
 
 // SearchMovies ...
-func SearchMovies(query string, page string) (movies []*Movies, err error) {
-	endPoint := "search"
-
-	params := napping.Params{
-		"page":     page,
-		"limit":    strconv.Itoa(config.Get().ResultsPerPage),
-		"query":    query,
-		"extended": "full,images",
-	}.AsUrlValues()
-
-	resp, err := Get(endPoint, params)
-
-	if err != nil {
-		return
-	} else if resp.Status() != 200 {
-		return movies, fmt.Errorf("Bad status searching Trakt movies: %d", resp.Status())
-	}
-
-	// TODO use response headers for pagination limits:
-	// X-Pagination-Page-Count:10
-	// X-Pagination-Item-Count:100
-
-	if err := resp.Unmarshal(&movies); err != nil {
-		log.Warning(err)
-	}
-
-	return
-}
 
 // TopMovies ...
 func TopMovies(topCategory string, page string) (movies []*Movies, total int, err error) {

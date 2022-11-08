@@ -19,9 +19,6 @@ func RemoveTrailingApostrophe(str string) string {
 }
 
 // RemoveTrailingApostrophes ...
-func RemoveTrailingApostrophes(str string) string {
-	return ""
-}
 
 // RomanizeHepburn ...
 // as per http://en.wikipedia.org/wiki/Hepburn_romanization#Variations

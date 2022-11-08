@@ -4,8 +4,8 @@ import (
 	"math"
 	"sort"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
 )
 
 // BySeeds ...
@@ -37,8 +37,10 @@ type MultiSorter struct {
 	less     []lessFunc
 }
 
-func (ms *MultiSorter) Len() int      { return len(ms.torrents) }
-func (ms *MultiSorter) Swap(i, j int) { ms.torrents[i], ms.torrents[j] = ms.torrents[j], ms.torrents[i] }
+func (ms *MultiSorter) Len() int { return len(ms.torrents) }
+func (ms *MultiSorter) Swap(i, j int) {
+	ms.torrents[i], ms.torrents[j] = ms.torrents[j], ms.torrents[i]
+}
 func (ms *MultiSorter) Less(i, j int) bool {
 	p, q := ms.torrents[i], ms.torrents[j]
 	var k int

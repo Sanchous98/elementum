@@ -139,7 +139,7 @@ func (p *Piece) Reset() {
 }
 
 // Seek File-like implementation
-func (p *Piece) Seek(offset int64, whence int) (ret int64, err error) {
+func (p *Piece) Seek(offset int64, _ int) (ret int64, err error) {
 	log.Debugf("Seek lone: %#v", offset)
 	return
 }

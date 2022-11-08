@@ -16,8 +16,7 @@ const (
 	DefaultOSDBServer = "https://api.opensubtitles.org/xml-rpc"
 	// DefaultUserAgent ...
 	DefaultUserAgent = "XBMC_Subtitles_Login_v5.0.16" // XBMC OpenSubtitles Agent
-	// SearchLimit ...
-	SearchLimit = 100
+
 	// StatusSuccess ...
 	StatusSuccess = "200 OK"
 )

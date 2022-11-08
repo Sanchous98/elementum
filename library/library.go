@@ -15,24 +15,18 @@ import (
 	"github.com/cespare/xxhash"
 	"github.com/op/go-logging"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/trakt"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/trakt"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 const (
-	movieType   = "movie"
-	showType    = "show"
-	episodeType = "episode"
+	movieType = "movie"
 
-	trueType  = "true"
-	falseType = "false"
-
-	resolveExpiration     = 7 * 24 * time.Hour
 	resolveFileExpiration = 60 * 24 * time.Hour
 )
 
@@ -74,25 +68,6 @@ const (
 	IMDBScraper
 )
 
-const (
-	// Active ...
-	Active = iota
-	// Deleted ...
-	Deleted
-)
-const (
-	// Delete ...
-	Delete = iota
-	// Update ...
-	Update
-	// Batch ...
-	Batch
-	// BatchDelete ...
-	BatchDelete
-	// DeleteTorrent ...
-	DeleteTorrent
-)
-
 var (
 	closing         = make(chan struct{})
 	removedEpisodes = make(chan *removedEpisode)
@@ -132,9 +107,6 @@ func InitDB() {
 }
 
 // Get returns singleton instance for Library
-func Get() *Library {
-	return l
-}
 
 // Init makes preparations on program start
 func Init() {
@@ -388,9 +360,7 @@ func Init() {
 	}
 }
 
-//
 // Library updates
-//
 func doUpdateLibrary() error {
 	if err := checkShowsPath(); err != nil {
 		return err
@@ -425,9 +395,7 @@ func doUpdateLibrary() error {
 	return nil
 }
 
-//
 // Path checks
-//
 func checkLibraryPath() error {
 	if libraryPath == "" {
 		libraryPath = config.Get().LibraryPath
@@ -927,25 +895,6 @@ func deleteDBItem(tmdbID int, mediaType int) error {
 	return err
 }
 
-func deleteBatchDBItem(tmdbIds []int, mediaType int) error {
-	tx, err := database.Get().Begin()
-	if err != nil {
-		log.Debugf("Cannot start transaction: %s", err)
-		return err
-	}
-	for _, id := range tmdbIds {
-		_, err := tx.Exec(`UPDATE library_items SET state = ? WHERE tmdbId = ? AND mediaType = ?`, StateDeleted, id, mediaType)
-		if err != nil {
-			log.Debugf("deleteDBItem failed: %s", err)
-			tx.Rollback()
-			return err
-		}
-	}
-	tx.Commit()
-
-	return nil
-}
-
 func wasRemoved(id int, mediaType int) (wasRemoved bool) {
 	count := 0
 	database.Get().QueryRow("SELECT COUNT(*) FROM library_items WHERE tmdbId = ? AND mediaType = ? AND state = ?", id, mediaType, StateDeleted).Scan(&count)
@@ -1014,10 +963,6 @@ func ClearTmdbCache() {
 // 		mainly copied from api/routes to skip cycle imports
 
 // URLForHTTP ...
-func URLForHTTP(pattern string, args ...interface{}) string {
-	u, _ := url.Parse(fmt.Sprintf(pattern, args...))
-	return util.GetHTTPHost() + u.String()
-}
 
 // URLForXBMC ...
 func URLForXBMC(pattern string, args ...interface{}) string {
@@ -1026,13 +971,6 @@ func URLForXBMC(pattern string, args ...interface{}) string {
 }
 
 // URLQuery ...
-func URLQuery(route string, query ...string) string {
-	v := url.Values{}
-	for i := 0; i < len(query); i += 2 {
-		v.Add(query[i], query[i+1])
-	}
-	return route + "?" + v.Encode()
-}
 
 //
 // Trakt syncs
@@ -1573,34 +1511,8 @@ func AddShow(tmdbID string, force bool) (*tmdb.Show, error) {
 }
 
 // GetMovieResume returns Resume info for kodi id
-func GetMovieResume(kodiID int) *Resume {
-	l.mu.Movies.Lock()
-	defer l.mu.Movies.Unlock()
-
-	for _, m := range l.Movies {
-		if m.UIDs.Kodi == kodiID {
-			return m.Resume
-		}
-	}
-
-	return nil
-}
 
 // GetEpisodeResume returns Resume info for kodi id
-func GetEpisodeResume(kodiID int) *Resume {
-	l.mu.Shows.RLock()
-	defer l.mu.Shows.RUnlock()
-
-	for _, existingShow := range l.Shows {
-		for _, existingEpisode := range existingShow.Episodes {
-			if existingEpisode.UIDs.Kodi == kodiID {
-				return existingEpisode.Resume
-			}
-		}
-	}
-
-	return nil
-}
 
 // GetUIDsFromKodi returns UIDs object for provided Kodi ID
 func GetUIDsFromKodi(kodiID int) *UniqueIDs {
@@ -1621,24 +1533,6 @@ func GetUIDsFromKodi(kodiID int) *UniqueIDs {
 }
 
 // GetShowForEpisode returns 'show' and 'episode'
-func GetShowForEpisode(kodiID int) (*Show, *Episode) {
-	if kodiID == 0 {
-		return nil, nil
-	}
-
-	l.mu.Shows.Lock()
-	defer l.mu.Shows.Unlock()
-
-	for _, s := range l.Shows {
-		for _, e := range s.Episodes {
-			if e.UIDs.Kodi == kodiID {
-				return s, e
-			}
-		}
-	}
-
-	return nil, nil
-}
 
 func getUnwatchedMovies(current, previous []*trakt.WatchedMovie) (diff []*trakt.WatchedMovie, err error) {
 	if current == nil || previous == nil || len(previous) == 0 || len(current) == 0 {

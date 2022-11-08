@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 	"github.com/op/go-logging"
 )
@@ -49,15 +49,14 @@ var (
 	cacheExpiration         = 6 * 24 * time.Hour
 	recentExpiration        = 15 * time.Minute
 	userlistExpiration      = 1 * time.Minute
-	watchedExpiration       = 10 * time.Minute
-	watchedLongExpiration   = 7 * 24 * time.Hour
-	activitiesExpiration    = 7 * 24 * time.Hour
-	progressExpiration      = 7 * 24 * time.Hour
+
+	watchedLongExpiration = 7 * 24 * time.Hour
+	activitiesExpiration  = 7 * 24 * time.Hour
+	progressExpiration    = 7 * 24 * time.Hour
 )
 
 const (
-	// ProgressSortWatched ...
-	ProgressSortWatched = iota
+
 	// ProgressSortShow ...
 	ProgressSortShow
 	// ProgressSortAiredNewer ...
@@ -491,20 +490,6 @@ type UserActivities struct {
 type ListItemsPayload struct {
 	Movies []*Movie `json:"movies,omitempty"`
 	Shows  []*Show  `json:"shows,omitempty"`
-}
-
-func totalFromHeaders(headers http.Header) (total int, err error) {
-	if len(headers) > 0 {
-		if itemCount, exists := headers["X-Pagination-Item-Count"]; exists {
-			if itemCount != nil {
-				total, err = strconv.Atoi(itemCount[0])
-				return
-			}
-			return -1, errors.New("X-Pagination-Item-Count was empty")
-		}
-		return -1, errors.New("No X-Pagination-Item-Count header found")
-	}
-	return -1, errors.New("No valid headers in request")
 }
 
 func getPagination(headers http.Header) *Pagination {

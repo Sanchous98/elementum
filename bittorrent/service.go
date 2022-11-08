@@ -20,21 +20,20 @@ import (
 	"github.com/sanity-io/litter"
 	"golang.org/x/time/rate"
 
-	"github.com/anacrolix/dht"
-	"github.com/anacrolix/missinggo/conntrack"
+	"github.com/anacrolix/dht/v2"
 	gotorrent "github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/iplist"
 	"github.com/anacrolix/torrent/storage"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/diskusage"
-	"github.com/elgatito/elementum/scrape"
-	estorage "github.com/elgatito/elementum/storage"
-	memory "github.com/elgatito/elementum/storage/memory_v2"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/diskusage"
+	"github.com/Sanchous98/elementum/scrape"
+	estorage "github.com/Sanchous98/elementum/storage"
+	memory "github.com/Sanchous98/elementum/storage/memory_v2"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // BTService ...
@@ -174,7 +173,7 @@ func (s *BTService) configure() {
 	log.Infof("UserAgent: %s, PeerID: %s", s.UserAgent, s.PeerID)
 
 	if s.config.ConnectionsLimit == 0 {
-		setPlatformSpecificSettings(s.config)
+		setPlatformSpecificSettings()
 	}
 
 	if s.config.DownloadRateLimit == 0 {
@@ -218,7 +217,9 @@ func (s *BTService) configure() {
 
 	if s.config.ProxyURL != "" {
 		if config.Get().ProxyUseDownload {
-			s.ClientConfig.ProxyURL = s.config.ProxyURL
+			if uri, err := url.Parse(s.config.ProxyURL); err != nil {
+				s.ClientConfig.HTTPProxy = scrape.GetProxyURL(uri)
+			}
 
 			s.ClientConfig.DisableUTP = true
 			log.Info("Disabling UTP because of enabled proxy and not working UDP proxying")
@@ -235,7 +236,12 @@ func (s *BTService) configure() {
 	s.ClientConfig.NoDefaultPortForwarding = s.config.DisableUPNP
 
 	s.ClientConfig.NoDHT = s.config.DisableDHT
-	s.ClientConfig.DhtStartingNodes = dht.GlobalBootstrapAddrs
+
+	s.ClientConfig.DhtStartingNodes = func(network string) dht.StartingNodesGetter {
+		return func() ([]dht.Addr, error) {
+			return dht.GlobalBootstrapAddrs(network)
+		}
+	}
 
 	s.ClientConfig.Seed = s.config.SeedTimeLimit > 0
 	s.ClientConfig.NoUpload = s.config.DisableUpload
@@ -256,18 +262,7 @@ func (s *BTService) configure() {
 	// Modify default Connections settings
 	s.ClientConfig.EstablishedConnsPerTorrent = s.config.ConnectionsLimit
 	s.ClientConfig.TorrentPeersHighWater = max(s.config.ConnectionsLimit*10, 3000)
-	s.ClientConfig.HalfOpenConnsPerTorrent = max(int(s.config.ConnectionsLimit/2), 50)
-
-	// Modify ConnTracker default values
-	if s.config.ConnTrackerLimitAuto || s.config.ConnTrackerLimit == 0 {
-		s.ClientConfig.ConnTracker.SetMaxEntries(s.config.ConnectionsLimit * 15)
-	} else {
-		s.ClientConfig.ConnTracker.SetMaxEntries(max(s.config.ConnTrackerLimit, 10))
-	}
-
-	s.ClientConfig.ConnTracker.Timeout = func(e conntrack.Entry) time.Duration {
-		return 10 * time.Second
-	}
+	s.ClientConfig.HalfOpenConnsPerTorrent = max(s.config.ConnectionsLimit/2, 50)
 
 	if !s.config.LimitAfterBuffering {
 		s.RestoreLimits()
@@ -829,7 +824,6 @@ func (s *BTService) PlayerSeek() {
 // ClientInfo ...
 func (s *BTService) ClientInfo(w io.Writer) {
 	s.Client.WriteStatus(w)
-	s.ClientConfig.ConnTracker.PrintStatus(w)
 }
 
 // AttachPlayer adds Player instance to service
@@ -1028,13 +1022,6 @@ func (s *BTService) GetListenIP(network string) string {
 		return s.ListenIPv6
 	}
 	return s.ListenIP
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func max(a, b int) int {

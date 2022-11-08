@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elgatito/elementum/scrape"
+	"github.com/Sanchous98/elementum/scrape"
 )
 
 // A Subtitle with its many OSDB attributes...
@@ -83,13 +83,6 @@ func (subs Subtitles) Best() *Subtitle {
 }
 
 // NewSubtitleReader ...
-func NewSubtitleReader(s *Subtitle) (io.Reader, error) {
-	resp, err := scrape.GetClient().Get(s.SubDownloadLink)
-	if err != nil {
-		return nil, err
-	}
-	return gzip.NewReader(resp.Body)
-}
 
 // SubtitleFile contains file data as returned by OSDB's API, that is to
 // say: gzip-ped and base64-encoded text.

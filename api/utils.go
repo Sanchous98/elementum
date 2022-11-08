@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // type contextMenu []*contextMenuItem
@@ -36,10 +36,6 @@ func filterListItems(l xbmc.ListItems) xbmc.ListItems {
 }
 
 // URLForHTTP ...
-func URLForHTTP(pattern string, args ...interface{}) string {
-	u, _ := url.Parse(fmt.Sprintf(pattern, args...))
-	return util.GetHTTPHost() + u.String()
-}
 
 // URLForXBMC ...
 func URLForXBMC(pattern string, args ...interface{}) string {

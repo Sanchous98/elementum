@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 func copyFile(from string, to string) error {
@@ -40,7 +40,7 @@ func MakeElementumRepositoryAddon() error {
 		Version:      util.GetVersion(),
 		ProviderName: config.Get().Info.Author,
 		Extensions: []*xbmc.AddonExtension{
-			&xbmc.AddonExtension{
+			{
 				Point: "xbmc.addon.repository",
 				Name:  addonName,
 				Info: &xbmc.AddonRepositoryInfo{
@@ -53,10 +53,10 @@ func MakeElementumRepositoryAddon() error {
 					Zip:  true,
 				},
 			},
-			&xbmc.AddonExtension{
+			{
 				Point: "xbmc.addon.metadata",
 				Summaries: []*xbmc.AddonText{
-					&xbmc.AddonText{
+					{
 						Text: "GitHub repository for Elementum updates",
 						Lang: "en",
 					},

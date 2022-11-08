@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/database"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/database"
+	"github.com/Sanchous98/elementum/xbmc"
 
 	"github.com/boltdb/bolt"
 	"github.com/karrick/godirwalk"
@@ -26,12 +26,8 @@ var log = logging.MustGetLogger("migrate")
 const (
 	movie = iota
 	show
-	season
-	episode
 	removedMovie
 	removedShow
-	removedSeason
-	removedEpisode
 )
 
 type migrateItem struct {

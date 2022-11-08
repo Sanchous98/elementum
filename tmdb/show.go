@@ -10,22 +10,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/fanart"
-	"github.com/elgatito/elementum/playcount"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/fanart"
+	"github.com/Sanchous98/elementum/playcount"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 )
 
 // LogError ...
-func LogError(err error) {
-	if err != nil {
-		pc, fn, line, _ := runtime.Caller(1)
-		log.Errorf("in %s[%s:%d] %#v: %v)", runtime.FuncForPC(pc).Name(), fn, line, err, err)
-	}
-}
 
 // GetShowImages ...
 func GetShowImages(showID int) *Images {
@@ -51,50 +45,8 @@ func GetShowImages(showID int) *Images {
 }
 
 // GetSeasonImages ...
-func GetSeasonImages(showID int, season int) *Images {
-	var images *Images
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.tmdb.show.%d.%d.images", showID, season)
-	if err := cacheStore.Get(key, &images); err != nil {
-		err = MakeRequest(APIRequest{
-			URL: fmt.Sprintf("%s/tv/%d/season/%d/images", tmdbEndpoint, showID, season),
-			Params: napping.Params{
-				"api_key":                apiKey,
-				"include_image_language": fmt.Sprintf("%s,en,null", config.Get().Language),
-			}.AsUrlValues(),
-			Result:      &images,
-			Description: "season images",
-		})
-
-		if images != nil {
-			cacheStore.Set(key, images, imagesCacheExpiration)
-		}
-	}
-	return images
-}
 
 // GetEpisodeImages ...
-func GetEpisodeImages(showID, season, episode int) *Images {
-	var images *Images
-	cacheStore := cache.NewDBStore()
-	key := fmt.Sprintf("com.tmdb.show.%d.%d.%d.images", showID, season, episode)
-	if err := cacheStore.Get(key, &images); err != nil {
-		err = MakeRequest(APIRequest{
-			URL: fmt.Sprintf("%s/tv/%d/season/%d/episode/%d/images", tmdbEndpoint, showID, season, episode),
-			Params: napping.Params{
-				"api_key":                apiKey,
-				"include_image_language": fmt.Sprintf("%s,en,null", config.Get().Language),
-			}.AsUrlValues(),
-			Result:      &images,
-			Description: "season images",
-		})
-
-		if images != nil {
-			cacheStore.Set(key, images, imagesCacheExpiration)
-		}
-	}
-	return images
-}
 
 // GetShowByID ...
 func GetShowByID(tmdbID string, language string) *Show {
@@ -379,7 +331,7 @@ func RecentEpisodes(params DiscoverFilters, language string, page int) (Shows, i
 }
 
 // TopRatedShows ...
-func TopRatedShows(genre string, language string, page int) (Shows, int) {
+func TopRatedShows(language string, page int) (Shows, int) {
 	return listShows("tv/top_rated", "toprated", napping.Params{"language": language}, page)
 }
 

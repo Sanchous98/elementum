@@ -1,38 +1,39 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"net/http"
-	"strings"
+	"github.com/gofiber/fiber/v2"
 	"time"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/library"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/library"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 const (
-	movieType   = "movie"
-	showType    = "tvshow"
-	seasonType  = "season"
+	movieType = "movie"
+	showType  = "tvshow"
+
 	episodeType = "episode"
 )
 
 // Notification serves callbacks from Kodi
-func Notification(w http.ResponseWriter, r *http.Request, s *bittorrent.BTService) {
-	sender := r.URL.Query().Get("sender")
-	method := r.URL.Query().Get("method")
-	data := r.URL.Query().Get("data")
+func Notification(r *fiber.Ctx, s *bittorrent.BTService) {
+	sender := r.Query("sender")
+	method := r.Query("method")
+	data := r.Query("data")
 
 	jsonData, jsonErr := base64.StdEncoding.DecodeString(data)
 	if jsonErr != nil {
 		// Base64 is not URL safe and, probably, Kodi is not well encoding it,
 		// so we just take it from URL and decode.
 		// Hoping "data=" is always in the end of url.
-		if strings.Contains(r.URL.RawQuery, "&data=") {
-			data = r.URL.RawQuery[strings.Index(r.URL.RawQuery, "&data=")+6:]
+
+		if bytes.Contains(r.Request().URI().QueryString(), []byte("&data=")) {
+			data = string(r.Request().URI().QueryString()[bytes.Index(r.Request().URI().QueryString(), []byte("&data="))+6:])
 		}
 		jsonData, _ = base64.StdEncoding.DecodeString(data)
 	}

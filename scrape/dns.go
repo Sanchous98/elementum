@@ -66,9 +66,6 @@ func CloudflareResolver() *net.Resolver {
 // on port 853.
 //
 // See https://quad9.net/faq/ for details.
-func Quad9Resolver() *net.Resolver {
-	return newResolver("dns.quad9.net", "9.9.9.9:853", "149.112.112.112:853")
-}
 
 // GoogleResolver returns Resolver that uses Google Public DNS service on 8.8.8.8 and
 // 8.8.4.4 on port 853.

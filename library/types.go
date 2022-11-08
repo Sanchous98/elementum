@@ -3,7 +3,7 @@ package library
 import (
 	"sync"
 
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 // Library represents library

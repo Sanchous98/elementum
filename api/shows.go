@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elgatito/elementum/bittorrent"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/library"
-	"github.com/elgatito/elementum/providers"
-	"github.com/elgatito/elementum/tmdb"
-	"github.com/elgatito/elementum/trakt"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/bittorrent"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/library"
+	"github.com/Sanchous98/elementum/providers"
+	"github.com/Sanchous98/elementum/tmdb"
+	"github.com/Sanchous98/elementum/trakt"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +23,8 @@ func TVIndex(ctx *gin.Context) {
 
 		{Label: "LOCALIZE[30360]", Path: URLForXBMC("/shows/trakt/progress"), Thumbnail: config.AddonResource("img", "trakt.png"), TraktAuth: true},
 		{Label: "LOCALIZE[30263]", Path: URLForXBMC("/shows/trakt/lists/"), Thumbnail: config.AddonResource("img", "trakt.png"), TraktAuth: true},
-		{Label: "LOCALIZE[30254]", Path: URLForXBMC("/shows/trakt/watchlist"), Thumbnail: config.AddonResource("img", "trakt.png"), ContextMenu: [][]string{[]string{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/watchlist"))}}, TraktAuth: true},
-		{Label: "LOCALIZE[30257]", Path: URLForXBMC("/shows/trakt/collection"), Thumbnail: config.AddonResource("img", "trakt.png"), ContextMenu: [][]string{[]string{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/collection"))}}, TraktAuth: true},
+		{Label: "LOCALIZE[30254]", Path: URLForXBMC("/shows/trakt/watchlist"), Thumbnail: config.AddonResource("img", "trakt.png"), ContextMenu: [][]string{{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/watchlist"))}}, TraktAuth: true},
+		{Label: "LOCALIZE[30257]", Path: URLForXBMC("/shows/trakt/collection"), Thumbnail: config.AddonResource("img", "trakt.png"), ContextMenu: [][]string{{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/collection"))}}, TraktAuth: true},
 		{Label: "LOCALIZE[30290]", Path: URLForXBMC("/shows/trakt/calendars/"), Thumbnail: config.AddonResource("img", "most_anticipated.png"), TraktAuth: true},
 		{Label: "LOCALIZE[30423]", Path: URLForXBMC("/shows/trakt/recommendations"), Thumbnail: config.AddonResource("img", "tv.png"), TraktAuth: true},
 		{Label: "LOCALIZE[30246]", Path: URLForXBMC("/shows/trakt/trending"), Thumbnail: config.AddonResource("img", "trending.png")},
@@ -50,7 +50,7 @@ func TVIndex(ctx *gin.Context) {
 	}
 	for _, item := range items {
 		item.ContextMenu = [][]string{
-			[]string{"LOCALIZE[30143]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows"))},
+			{"LOCALIZE[30143]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows"))},
 		}
 	}
 
@@ -67,9 +67,9 @@ func TVGenres(ctx *gin.Context) {
 			Path:      URLForXBMC("/shows/popular/genre/%s", strconv.Itoa(genre.ID)),
 			Thumbnail: config.AddonResource("img", fmt.Sprintf("genre_%s.png", slug)),
 			ContextMenu: [][]string{
-				[]string{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/genre/%s", strconv.Itoa(genre.ID)))},
-				[]string{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/genre/%s", strconv.Itoa(genre.ID)))},
-				[]string{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_genres"))},
+				{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/genre/%s", strconv.Itoa(genre.ID)))},
+				{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/genre/%s", strconv.Itoa(genre.ID)))},
+				{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_genres"))},
 			},
 		})
 	}
@@ -84,9 +84,9 @@ func TVLanguages(ctx *gin.Context) {
 			Label: language.Name,
 			Path:  URLForXBMC("/shows/popular/language/%s", language.Iso639_1),
 			ContextMenu: [][]string{
-				[]string{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/language/%s", language.Iso639_1))},
-				[]string{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/language/%s", language.Iso639_1))},
-				[]string{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_languages"))},
+				{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/language/%s", language.Iso639_1))},
+				{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/language/%s", language.Iso639_1))},
+				{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_languages"))},
 			},
 		})
 	}
@@ -101,9 +101,9 @@ func TVCountries(ctx *gin.Context) {
 			Label: country.EnglishName,
 			Path:  URLForXBMC("/shows/popular/country/%s", country.Iso31661),
 			ContextMenu: [][]string{
-				[]string{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/country/%s", country.Iso31661))},
-				[]string{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/country/%s", country.Iso31661))},
-				[]string{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_countries"))},
+				{"LOCALIZE[30237]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/shows/country/%s", country.Iso31661))},
+				{"LOCALIZE[30238]", fmt.Sprintf("Container.Update(%s)", URLForXBMC("/shows/recent/episodes/country/%s", country.Iso31661))},
+				{"LOCALIZE[30144]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/menus_tvshows_countries"))},
 			},
 		})
 	}
@@ -120,7 +120,7 @@ func TVTraktLists(ctx *gin.Context) {
 			Path:      URLForXBMC("/shows/trakt/lists/id/%d", list.IDs.Trakt),
 			Thumbnail: config.AddonResource("img", "trakt.png"),
 			ContextMenu: [][]string{
-				[]string{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/%d", list.IDs.Trakt))},
+				{"LOCALIZE[30252]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/library/show/list/add/%d", list.IDs.Trakt))},
 			},
 		}
 		items = append(items, item)
@@ -181,7 +181,7 @@ func renderShows(ctx *gin.Context, shows tmdb.Shows, page int, total int, query 
 		item.ContextMenu = [][]string{
 			watchlistAction,
 			collectionAction,
-			[]string{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
+			{"LOCALIZE[30035]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/tvshows"))},
 		}
 		item.ContextMenu = append(libraryActions, item.ContextMenu...)
 
@@ -257,7 +257,7 @@ func RecentEpisodes(ctx *gin.Context) {
 // TopRatedShows ...
 func TopRatedShows(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	shows, total := tmdb.TopRatedShows("", config.Get().Language, page)
+	shows, total := tmdb.TopRatedShows(config.Get().Language, page)
 	renderShows(ctx, shows, page, total, "")
 }
 
@@ -322,9 +322,9 @@ func ShowSeasons(ctx *gin.Context) {
 
 		item.Path = URLForXBMC("/show/%d/season/%d/episodes", show.ID, item.Info.Season)
 		item.ContextMenu = [][]string{
-			[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
-			[]string{contextOppositeLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextOppositeURL)},
-			[]string{"LOCALIZE[30036]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/seasons"))},
+			{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+			{contextOppositeLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextOppositeURL)},
+			{"LOCALIZE[30036]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/seasons"))},
 		}
 		reversedItems = append(reversedItems, item)
 	}
@@ -370,15 +370,15 @@ func ShowEpisodes(ctx *gin.Context) {
 
 		if config.Get().Platform.Kodi < 17 {
 			item.ContextMenu = [][]string{
-				[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
-				[]string{"LOCALIZE[30203]", "XBMC.Action(Info)"},
-				[]string{"LOCALIZE[30268]", "XBMC.Action(ToggleWatched)"},
-				[]string{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
+				{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+				{"LOCALIZE[30203]", "XBMC.Action(Info)"},
+				{"LOCALIZE[30268]", "XBMC.Action(ToggleWatched)"},
+				{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
 			}
 		} else {
 			item.ContextMenu = [][]string{
-				[]string{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
-				[]string{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
+				{contextLabel, fmt.Sprintf("XBMC.PlayMedia(%s)", contextURL)},
+				{"LOCALIZE[30037]", fmt.Sprintf("XBMC.RunPlugin(%s)", URLForXBMC("/setviewmode/episodes"))},
 			}
 		}
 		item.IsPlayable = true
@@ -434,7 +434,7 @@ func ShowSeasonLinks(btService *bittorrent.BTService) gin.HandlerFunc {
 		longName := fmt.Sprintf("%s Season %02d", show.Name, seasonNumber)
 
 		existingTorrent := btService.HasTorrentBySeason(showID, seasonNumber)
-		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]", xbmc.DialogExpiration.Existing)) {
+		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]")) {
 			rURL := URLQuery(URLForXBMC("/play"),
 				"resume", existingTorrent,
 				"tmdb", strconv.Itoa(season.ID),
@@ -558,7 +558,7 @@ func ShowSeasonPlay(btService *bittorrent.BTService) gin.HandlerFunc {
 		}
 
 		existingTorrent := btService.HasTorrentBySeason(showID, seasonNumber)
-		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]", xbmc.DialogExpiration.Existing)) {
+		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]")) {
 			rURL := URLQuery(URLForXBMC("/play"),
 				"resume", existingTorrent,
 				"tmdb", strconv.Itoa(season.ID),
@@ -656,11 +656,7 @@ func ShowEpisodePlaySelector(link string, btService *bittorrent.BTService) gin.H
 	play := strings.Contains(link, "play")
 
 	if !strings.Contains(link, "force") && config.Get().ForceLinkType {
-		if config.Get().ChooseStreamAuto {
-			play = true
-		} else {
-			play = false
-		}
+		play = config.Get().ChooseStreamAuto
 	}
 
 	if play {
@@ -696,7 +692,7 @@ func ShowEpisodeLinks(btService *bittorrent.BTService) gin.HandlerFunc {
 		longName := fmt.Sprintf("%s S%02dE%02d", show.Name, seasonNumber, episodeNumber)
 
 		existingTorrent := btService.HasTorrentByEpisode(showID, seasonNumber, episodeNumber)
-		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]", xbmc.DialogExpiration.Existing)) {
+		if existingTorrent != "" && (config.Get().SilentStreamStart || xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]")) {
 			rURL := URLQuery(URLForXBMC("/play"),
 				"doresume", doresume,
 				"resume", existingTorrent,
@@ -837,7 +833,7 @@ func ShowEpisodePlay(btService *bittorrent.BTService) gin.HandlerFunc {
 		}
 
 		existingTorrent := btService.HasTorrentByEpisode(showID, seasonNumber, episodeNumber)
-		if existingTorrent != "" && xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]", xbmc.DialogExpiration.Existing) {
+		if existingTorrent != "" && xbmc.DialogConfirmFocused("Elementum", "LOCALIZE[30270]") {
 			rURL := URLQuery(URLForXBMC("/play"),
 				"doresume", doresume,
 				"resume", existingTorrent,

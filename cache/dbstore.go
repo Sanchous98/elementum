@@ -9,7 +9,7 @@ import (
 	"github.com/klauspost/compress/gzip"
 	"github.com/vmihailenco/msgpack"
 
-	"github.com/elgatito/elementum/database"
+	"github.com/Sanchous98/elementum/database"
 )
 
 //go:generate msgp -o msgp.go -io=false -tests=false
@@ -26,12 +26,6 @@ type dbStoreItem struct {
 }
 
 var (
-	bufferPool = &sync.Pool{
-		New: func() interface{} {
-			return &bytes.Buffer{}
-		},
-	}
-
 	zipWriters = sync.Pool{
 		New: func() interface{} {
 			return &gzip.Writer{}
@@ -121,12 +115,12 @@ func (c *DBStore) Delete(key string) error {
 }
 
 // Increment ...
-func (c *DBStore) Increment(key string, delta uint64) (uint64, error) {
+func (c *DBStore) Increment(string, uint64) (uint64, error) {
 	return 0, errNotSupported
 }
 
 // Decrement ...
-func (c *DBStore) Decrement(key string, delta uint64) (uint64, error) {
+func (c *DBStore) Decrement(string, uint64) (uint64, error) {
 	return 0, errNotSupported
 }
 

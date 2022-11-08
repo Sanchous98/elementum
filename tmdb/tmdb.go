@@ -7,10 +7,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/elgatito/elementum/cache"
-	"github.com/elgatito/elementum/config"
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/cache"
+	"github.com/Sanchous98/elementum/config"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 	"github.com/jmcvetta/napping"
 	"github.com/op/go-logging"
 )
@@ -352,8 +352,8 @@ const (
 	cacheHalfExpiration     = 3 * 24 * time.Hour
 	recentExpiration        = 15 * time.Minute
 	imagesCacheExpiration   = 14 * 24 * time.Hour
-	resolveCacheExpiration  = 14 * 24 * time.Hour
-	findCacheExpiration     = 14 * 24 * time.Hour
+
+	findCacheExpiration = 14 * 24 * time.Hour
 )
 
 var (

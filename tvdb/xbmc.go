@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elgatito/elementum/util"
-	"github.com/elgatito/elementum/xbmc"
+	"github.com/Sanchous98/elementum/util"
+	"github.com/Sanchous98/elementum/xbmc"
 )
 
 func imageURL(path string) string {

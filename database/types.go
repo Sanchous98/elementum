@@ -2,8 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"sync"
-
 	"github.com/boltdb/bolt"
 	"github.com/op/go-logging"
 )
@@ -61,15 +59,6 @@ var (
 	sqliteDatabase *SqliteDatabase
 	boltDatabase   *BoltDatabase
 	cacheDatabase  *BoltDatabase
-
-	once sync.Once
-)
-
-const (
-	// StatusRemove ...
-	StatusRemove = iota
-	// StatusActive ...
-	StatusActive
 )
 
 const (

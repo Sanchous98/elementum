@@ -23,35 +23,8 @@ func GetLibraryMovie(kodiID int) *Movie {
 }
 
 // GetLibraryShow finds Show from library
-func GetLibraryShow(kodiID int) *Show {
-	l.mu.Shows.Lock()
-	defer l.mu.Shows.Unlock()
-
-	// query := strconv.Itoa(kodiID)
-	for _, s := range l.Shows {
-		if s.UIDs.Kodi == kodiID {
-			return s
-		}
-	}
-
-	return nil
-}
 
 // GetLibrarySeason finds Show/Season from library
-func GetLibrarySeason(kodiID int) (*Show, *Season) {
-	l.mu.Shows.Lock()
-	defer l.mu.Shows.Unlock()
-
-	for _, s := range l.Shows {
-		for _, se := range s.Seasons {
-			if se.UIDs.Kodi == kodiID {
-				return s, se
-			}
-		}
-	}
-
-	return nil, nil
-}
 
 // GetLibraryEpisode finds Show/Episode from library
 func GetLibraryEpisode(kodiID int) (*Show, *Episode) {
